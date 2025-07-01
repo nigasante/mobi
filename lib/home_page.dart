@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_3/admin_manager.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'category.dart'; // Import your model
+import 'admin_manager.dart'; // Import the admin manager
 
 class Article {
   final int articleID;
@@ -57,6 +59,8 @@ class _HomePageState extends State<HomePage> {
   bool isLoading = true;
   int? selectedCategoryId;
   String? selectedCategory;
+  int? currentUserRoleId = 1; // Example: 1 = Admin, 2 = Editor, 3 = Reader
+  int? currentUserId = 1; // Example: set this to the logged-in user's ID
 
   @override
   void initState() {
@@ -111,6 +115,11 @@ class _HomePageState extends State<HomePage> {
     Navigator.of(context).pushReplacementNamed('/');
   }
 
+  bool _isAdmin() {
+    // Replace with your actual admin check logic
+    return currentUserRoleId == 1;
+  }
+
   String get appBarTitle {
     if (selectedCategoryId == null) return "Tin tức";
     final selected = categories.firstWhere(
@@ -152,17 +161,44 @@ class _HomePageState extends State<HomePage> {
             ),
             Padding(
               padding: const EdgeInsets.all(16.0),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  icon: Icon(Icons.logout),
-                  label: Text('Đăng xuất'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 18, 67, 160),
-                    foregroundColor: Colors.white,
+              child: Column(
+                children: [
+                  if (_isAdmin())
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        icon: Icon(Icons.admin_panel_settings),
+                        label: Text('Quản lý bài viết'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange,
+                          foregroundColor: Colors.white,
+                        ),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => AdminArticleManager(
+                                adminUserId: currentUserId ?? 1,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  if (_isAdmin()) const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      icon: Icon(Icons.logout),
+                      label: Text('Đăng xuất'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(255, 18, 67, 160),
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: _logout,
+                    ),
                   ),
-                  onPressed: _logout,
-                ),
+                ],
               ),
             ),
           ],
@@ -171,28 +207,28 @@ class _HomePageState extends State<HomePage> {
       body: isLoading
           ? Center(child: CircularProgressIndicator())
           : articles.isEmpty
-          ? Center(
-              child: Text(
-                "Không có bài viết trong danh mục này.",
-                style: TextStyle(fontSize: 16),
-              ),
-            )
-          : ListView.builder(
-              itemCount: articles.length,
-              itemBuilder: (context, index) => ListTile(
-                title: Text(articles[index].title),
-                subtitle: Text(articles[index].status),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          ArticleDetailPage(article: articles[index]),
-                    ),
-                  );
-                },
-              ),
-            ),
+              ? Center(
+                  child: Text(
+                    "Không có bài viết trong danh mục này.",
+                    style: TextStyle(fontSize: 16),
+                  ),
+                )
+              : ListView.builder(
+                  itemCount: articles.length,
+                  itemBuilder: (context, index) => ListTile(
+                    title: Text(articles[index].title),
+                    subtitle: Text(articles[index].status),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              ArticleDetailPage(article: articles[index]),
+                        ),
+                      );
+                    },
+                  ),
+                ),
     );
   }
 }

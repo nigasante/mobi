@@ -129,7 +129,7 @@ class _AdminArticleManagerState extends State<AdminArticleManager> {
                 );
               } else {
                 response = await http.put(
-                  Uri.parse('http://10.0.2.2:5264/api/articles/${article!.articleID}'),
+                  Uri.parse('http://10.0.2.2:5264/api/articles/${article.articleID}'),
                   headers: {'Content-Type': 'application/json'},
                   body: json.encode(body),
                 );
