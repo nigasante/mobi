@@ -3,7 +3,6 @@ import 'package:flutter_application_3/admin_manager.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'category.dart'; // Import your model
-import 'admin_manager.dart'; // Import the admin manager
 
 class Article {
   final int articleID;
@@ -207,28 +206,28 @@ class _HomePageState extends State<HomePage> {
       body: isLoading
           ? Center(child: CircularProgressIndicator())
           : articles.isEmpty
-              ? Center(
-                  child: Text(
-                    "Không có bài viết trong danh mục này.",
-                    style: TextStyle(fontSize: 16),
-                  ),
-                )
-              : ListView.builder(
-                  itemCount: articles.length,
-                  itemBuilder: (context, index) => ListTile(
-                    title: Text(articles[index].title),
-                    subtitle: Text(articles[index].status),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              ArticleDetailPage(article: articles[index]),
-                        ),
-                      );
-                    },
-                  ),
-                ),
+          ? Center(
+              child: Text(
+                "Không có bài viết trong danh mục này.",
+                style: TextStyle(fontSize: 16),
+              ),
+            )
+          : ListView.builder(
+              itemCount: articles.length,
+              itemBuilder: (context, index) => ListTile(
+                title: Text(articles[index].title),
+                subtitle: Text(articles[index].status),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          ArticleDetailPage(article: articles[index]),
+                    ),
+                  );
+                },
+              ),
+            ),
     );
   }
 }
