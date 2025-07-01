@@ -17,7 +17,7 @@ class NewsApp extends StatelessWidget {
       initialRoute: '/', // Màn hình đầu tiên là login
       routes: {
         '/': (context) => LoginPage(),
-        '/home': (context) => HomePage(),
+       // '/home': (context) => HomePage(),
         '/article': (context) => ArticlePage(),
       },
     );

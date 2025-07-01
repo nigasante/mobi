@@ -46,11 +46,19 @@ class Article {
 }
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final int currentUserId;
+  final int currentUserRoleId;
+
+  const HomePage({
+    super.key,
+    required this.currentUserId,
+    required this.currentUserRoleId,
+  });
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
+
 
 class _HomePageState extends State<HomePage> {
   List<Article> articles = [];
@@ -58,12 +66,14 @@ class _HomePageState extends State<HomePage> {
   bool isLoading = true;
   int? selectedCategoryId;
   String? selectedCategory;
-  int? currentUserRoleId = 1; // Example: 1 = Admin, 2 = Editor, 3 = Reader
-  int? currentUserId = 1; // Example: set this to the logged-in user's ID
+  late int currentUserRoleId;
+  late int currentUserId;// Example: set this to the logged-in user's ID
 
   @override
   void initState() {
     super.initState();
+    currentUserId = widget.currentUserId;
+    currentUserRoleId = widget.currentUserRoleId;
     fetchArticles();
     fetchCategories();
   }
