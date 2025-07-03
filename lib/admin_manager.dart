@@ -3,7 +3,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import 'home_page.dart'; // For Article model
-import 'category.dart';  // For Category model
+import 'category.dart'; // For Category model
+import 'edit_article_page.dart'; // <-- Import your edit page
 
 class AdminArticleManager extends StatefulWidget {
   final int adminUserId; // Pass the admin's UserID
@@ -28,7 +29,9 @@ class _AdminArticleManagerState extends State<AdminArticleManager> {
 
   Future<void> fetchArticles() async {
     setState(() => isLoading = true);
-    final response = await http.get(Uri.parse('http://10.0.2.2:5264/api/articles'));
+    final response = await http.get(
+      Uri.parse('http://10.0.2.2:5264/api/articles'),
+    );
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
       setState(() {
@@ -41,7 +44,9 @@ class _AdminArticleManagerState extends State<AdminArticleManager> {
   }
 
   Future<void> fetchCategories() async {
-    final response = await http.get(Uri.parse('http://10.0.2.2:5264/api/categories'));
+    final response = await http.get(
+      Uri.parse('http://10.0.2.2:5264/api/categories'),
+    );
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
       setState(() {
@@ -51,23 +56,34 @@ class _AdminArticleManagerState extends State<AdminArticleManager> {
   }
 
   Future<void> deleteArticle(int articleId) async {
-    final response = await http.delete(Uri.parse('http://10.0.2.2:5264/api/articles/$articleId'));
+    final response = await http.delete(
+      Uri.parse('http://10.0.2.2:5264/api/articles/$articleId'),
+    );
     if (response.statusCode == 200) {
       setState(() {
         articles.removeWhere((a) => a.articleID == articleId);
       });
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Article deleted')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Article deleted')));
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to delete article')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to delete article')));
     }
   }
 
   Future<void> createOrUpdateArticle({Article? article}) async {
     final isNew = article == null;
     final titleController = TextEditingController(text: article?.title ?? '');
-    final contentController = TextEditingController(text: article?.content ?? '');
+    final contentController = TextEditingController(
+      text: article?.content ?? '',
+    );
     Category? selectedCategory = article != null
-        ? categories.firstWhere((c) => c.categoryID == (article as dynamic).categoryID, orElse: () => categories.first)
+        ? categories.firstWhere(
+            (c) => c.categoryID == (article as dynamic).categoryID,
+            orElse: () => categories.first,
+          )
         : null;
     String status = article?.status ?? 'Draft';
 
@@ -90,10 +106,10 @@ class _AdminArticleManagerState extends State<AdminArticleManager> {
               DropdownButtonFormField<Category>(
                 value: selectedCategory,
                 items: categories
-                    .map((cat) => DropdownMenuItem(
-                          value: cat,
-                          child: Text(cat.name),
-                        ))
+                    .map(
+                      (cat) =>
+                          DropdownMenuItem(value: cat, child: Text(cat.name)),
+                    )
                     .toList(),
                 onChanged: (cat) => selectedCategory = cat,
                 decoration: InputDecoration(labelText: 'Category'),
@@ -110,7 +126,10 @@ class _AdminArticleManagerState extends State<AdminArticleManager> {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel'),
+          ),
           ElevatedButton(
             onPressed: () async {
               final body = {
@@ -129,7 +148,9 @@ class _AdminArticleManagerState extends State<AdminArticleManager> {
                 );
               } else {
                 response = await http.put(
-                  Uri.parse('http://10.0.2.2:5264/api/articles/${article.articleID}'),
+                  Uri.parse(
+                    'http://10.0.2.2:5264/api/articles/${article.articleID}',
+                  ),
                   headers: {'Content-Type': 'application/json'},
                   body: json.encode(body),
                 );
@@ -138,11 +159,19 @@ class _AdminArticleManagerState extends State<AdminArticleManager> {
                 Navigator.pop(context);
                 fetchArticles();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(isNew ? 'Article created' : 'Article updated')),
+                  SnackBar(
+                    content: Text(
+                      isNew ? 'Article created' : 'Article updated',
+                    ),
+                  ),
                 );
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Failed to ${isNew ? 'create' : 'update'} article')),
+                  SnackBar(
+                    content: Text(
+                      'Failed to ${isNew ? 'create' : 'update'} article',
+                    ),
+                  ),
                 );
               }
             },
@@ -161,7 +190,14 @@ class _AdminArticleManagerState extends State<AdminArticleManager> {
         actions: [
           IconButton(
             icon: Icon(Icons.add),
-            onPressed: () => createOrUpdateArticle(),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => EditArticlePage(article: null),
+                ),
+              );
+            },
             tooltip: 'Create Article',
           ),
         ],
@@ -182,7 +218,15 @@ class _AdminArticleManagerState extends State<AdminArticleManager> {
                       children: [
                         IconButton(
                           icon: Icon(Icons.edit, color: Colors.blue),
-                          onPressed: () => createOrUpdateArticle(article: article),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    EditArticlePage(article: article),
+                              ),
+                            );
+                          },
                         ),
                         IconButton(
                           icon: Icon(Icons.delete, color: Colors.red),

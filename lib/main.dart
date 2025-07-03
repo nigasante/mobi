@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import 'login_page.dart';
 import 'home_page.dart';
-import 'article_page.dart';
 
 void main() => runApp(NewsApp());
 
@@ -18,7 +17,10 @@ class NewsApp extends StatelessWidget {
       routes: {
         '/': (context) => LoginPage(),
        // '/home': (context) => HomePage(),
-        '/article': (context) => ArticlePage(),
+        //'/article': (context) => ArticlePage(),
+        //'/manage': (context) => ManageArticlesPage(),
+        //'/edit': (context) => EditArticlePage(),
+      
       },
     );
   }

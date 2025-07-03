@@ -59,7 +59,6 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-
 class _HomePageState extends State<HomePage> {
   List<Article> articles = [];
   List<Category> categories = [];
@@ -67,7 +66,7 @@ class _HomePageState extends State<HomePage> {
   int? selectedCategoryId;
   String? selectedCategory;
   late int currentUserRoleId;
-  late int currentUserId;// Example: set this to the logged-in user's ID
+  late int currentUserId;
 
   @override
   void initState() {
@@ -125,7 +124,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   bool _isAdmin() {
-    // Replace with your actual admin check logic
     return currentUserRoleId == 1;
   }
 
@@ -143,72 +141,45 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(title: Text(appBarTitle), backgroundColor: Colors.blue),
       drawer: Drawer(
-        child: Column(
+        child: ListView(
+          padding: EdgeInsets.zero,
           children: [
             DrawerHeader(
-              child: Text('Danh mục', style: TextStyle(fontSize: 20)),
+              child: Text('Danh mục', style: TextStyle(fontSize: 20, color: Colors.white)),
               decoration: BoxDecoration(color: Colors.blue),
             ),
-            Expanded(
-              child: ListView(
-                padding: EdgeInsets.zero,
-                children: [
-                  ListTile(
-                    title: Text('Tất cả'),
-                    selected: selectedCategoryId == null,
-                    onTap: () => _onCategorySelected(null),
-                  ),
-                  ...categories.map(
-                    (cat) => ListTile(
-                      title: Text(cat.name),
-                      selected: selectedCategoryId == cat.categoryID,
-                      onTap: () => _onCategorySelected(cat.categoryID),
-                    ),
-                  ),
-                ],
+            ListTile(
+              title: Text('Tất cả'),
+              selected: selectedCategoryId == null,
+              onTap: () => _onCategorySelected(null),
+            ),
+            ...categories.map(
+              (cat) => ListTile(
+                title: Text(cat.name),
+                selected: selectedCategoryId == cat.categoryID,
+                onTap: () => _onCategorySelected(cat.categoryID),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  if (_isAdmin())
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        icon: Icon(Icons.admin_panel_settings),
-                        label: Text('Quản lý bài viết'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange,
-                          foregroundColor: Colors.white,
-                        ),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => AdminArticleManager(
-                                adminUserId: currentUserId ?? 1,
-                              ),
-                            ),
-                          );
-                        },
+            Divider(),
+            if (_isAdmin())
+              ListTile(
+                leading: Icon(Icons.admin_panel_settings, color: Colors.orange),
+                title: Text('Quản lý bài viết'),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => AdminArticleManager(
+                        adminUserId: currentUserId,
                       ),
                     ),
-                  if (_isAdmin()) const SizedBox(height: 8),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      icon: Icon(Icons.logout),
-                      label: Text('Đăng xuất'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromARGB(255, 18, 67, 160),
-                        foregroundColor: Colors.white,
-                      ),
-                      onPressed: _logout,
-                    ),
-                  ),
-                ],
+                  );
+                },
               ),
+            ListTile(
+              leading: Icon(Icons.logout, color: Colors.red),
+              title: Text('Đăng xuất'),
+              onTap: _logout,
             ),
           ],
         ),
@@ -216,28 +187,28 @@ class _HomePageState extends State<HomePage> {
       body: isLoading
           ? Center(child: CircularProgressIndicator())
           : articles.isEmpty
-          ? Center(
-              child: Text(
-                "Không có bài viết trong danh mục này.",
-                style: TextStyle(fontSize: 16),
-              ),
-            )
-          : ListView.builder(
-              itemCount: articles.length,
-              itemBuilder: (context, index) => ListTile(
-                title: Text(articles[index].title),
-                subtitle: Text(articles[index].status),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          ArticleDetailPage(article: articles[index]),
-                    ),
-                  );
-                },
-              ),
-            ),
+              ? Center(
+                  child: Text(
+                    "Không có bài viết trong danh mục này.",
+                    style: TextStyle(fontSize: 16),
+                  ),
+                )
+              : ListView.builder(
+                  itemCount: articles.length,
+                  itemBuilder: (context, index) => ListTile(
+                    title: Text(articles[index].title),
+                    subtitle: Text(articles[index].status),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              ArticleDetailPage(article: articles[index]),
+                        ),
+                      );
+                    },
+                  ),
+                ),
     );
   }
 }
