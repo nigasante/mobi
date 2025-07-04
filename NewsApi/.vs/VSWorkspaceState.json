@@ -1,0 +1,16 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\bin",
+    "\\bin\\Debug",
+    "\\bin\\Release",
+    "\\Controllers",
+    "\\Data",
+    "\\Migrations",
+    "\\Models",
+    "\\obj",
+    "\\obj\\Debug"
+  ],
+  "SelectedNode": "\\NewsApi.csproj",
+  "PreviewInSolutionExplorer": false
+}
