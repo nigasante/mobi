@@ -137,23 +137,26 @@ namespace NewsApi.Controllers
             return Ok(new { message = "Article updated successfully" });
         }
 
-        // DELETE: api/articles/{id}
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteArticle(int id)
         {
             var article = await _context.Articles.FindAsync(id);
 
-            if (article == null || article.IsDeleted)
+            if (article == null)
                 return NotFound("Article not found");
 
-            article.IsDeleted = true;
-            article.UpdatedAt = DateTime.UtcNow;
+            _context.Articles.Remove(article);
 
-            _context.Entry(article).State = EntityState.Modified;
+            // Remove related ArticleCategory entries
+            var relatedCategories = _context.ArticleCategories.Where(ac => ac.ArticleID == id);
+            _context.ArticleCategories.RemoveRange(relatedCategories);
+
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "Article deleted (soft delete)" });
+            return Ok(new { message = "Article permanently deleted" });
         }
+
+
 
         public class ArticleDto
         {

@@ -140,6 +140,17 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    // Filter articles based on role and status
+    List<Article> visibleArticles = articles.where((article) {
+      if (currentUserRoleId == 1 || currentUserRoleId == 2) {
+        // Admin and Editor see all
+        return true;
+      } else {
+        // Reader sees only Published
+        return article.status == 'Published';
+      }
+    }).toList();
+
     return Scaffold(
       appBar: AppBar(title: Text(appBarTitle), backgroundColor: Colors.blue),
       drawer: Drawer(
@@ -188,7 +199,7 @@ class _HomePageState extends State<HomePage> {
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
-          : articles.isEmpty
+          : visibleArticles.isEmpty
               ? Center(
                   child: Text(
                     "Không có bài viết trong danh mục này.",
@@ -196,16 +207,16 @@ class _HomePageState extends State<HomePage> {
                   ),
                 )
               : ListView.builder(
-                  itemCount: articles.length,
+                  itemCount: visibleArticles.length,
                   itemBuilder: (context, index) => ListTile(
-                    title: Text(articles[index].title),
-                    subtitle: Text(articles[index].status),
+                    title: Text(visibleArticles[index].title),
+                    subtitle: Text(visibleArticles[index].status),
                     onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) =>
-                              ArticleDetailPage(article: articles[index]),
+                              ArticleDetailPage(article: visibleArticles[index]),
                         ),
                       );
                     },

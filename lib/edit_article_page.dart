@@ -39,6 +39,18 @@ class _EditArticlePageState extends State<EditArticlePage> {
   }
 
   Future<void> _submitArticle() async {
+    // Validate required fields
+    if (_titleController.text.trim().isEmpty ||
+        _contentController.text.trim().isEmpty ||
+        widget.categories.isEmpty ||
+        _selectedCategoryIds.isEmpty ||
+        _status.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Vui lòng điền đầy đủ thông tin và chọn ít nhất một danh mục')),
+      );
+      return;
+    }
+
     final url = widget.article == null
         ? 'http://10.0.2.2:5264/api/articles'
         : 'http://10.0.2.2:5264/api/articles/${widget.article!.articleID}';
@@ -49,8 +61,8 @@ class _EditArticlePageState extends State<EditArticlePage> {
         ? http.post(Uri.parse(url),
             headers: {'Content-Type': 'application/json'},
             body: json.encode({
-              'title': _titleController.text,
-              'content': _contentController.text,
+              'title': _titleController.text.trim(),
+              'content': _contentController.text.trim(),
               'editorID': widget.editorId,
               'status': _status,
               'publishDate': DateTime.now().toIso8601String(),
@@ -59,8 +71,8 @@ class _EditArticlePageState extends State<EditArticlePage> {
         : http.put(Uri.parse(url),
             headers: {'Content-Type': 'application/json'},
             body: json.encode({
-              'title': _titleController.text,
-              'content': _contentController.text,
+              'title': _titleController.text.trim(),
+              'content': _contentController.text.trim(),
               'editorID': widget.editorId,
               'status': _status,
               'publishDate': DateTime.now().toIso8601String(),
@@ -100,7 +112,7 @@ class _EditArticlePageState extends State<EditArticlePage> {
             const SizedBox(height: 10),
             DropdownButtonFormField<String>(
               value: _status,
-              items: ['Draft', 'Published', 'Archived']
+              items: ['Draft', 'Published']
                   .map((s) => DropdownMenuItem(value: s, child: Text(s)))
                   .toList(),
               onChanged: (val) {

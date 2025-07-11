@@ -1165,3 +1165,4 @@ C:\Users\nguye\Downloads\mobi-main (1)\mobi-main\NewsApi\obj\Debug\net9.0\refint
 C:\Users\nguye\Downloads\mobi-main (1)\mobi-main\NewsApi\obj\Debug\net9.0\NewsApi.pdb
 C:\Users\nguye\Downloads\mobi-main (1)\mobi-main\NewsApi\obj\Debug\net9.0\NewsApi.genruntimeconfig.cache
 C:\Users\nguye\Downloads\mobi-main (1)\mobi-main\NewsApi\obj\Debug\net9.0\ref\NewsApi.dll
+C:\Users\nguye\Downloads\mobi-main (1)\mobi-main\NewsApi\obj\Debug\net9.0\NewsApi.sourcelink.json

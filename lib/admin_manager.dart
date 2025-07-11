@@ -58,8 +58,9 @@ class _AdminArticleManagerState extends State<AdminArticleManager> {
   Future<void> deleteArticle(int articleId) async {
     final response = await http.delete(
       Uri.parse('http://10.0.2.2:5264/api/articles/$articleId'),
+      headers: {'Content-Type': 'application/json'},
     );
-    if (response.statusCode == 200) {
+    if (response.statusCode == 200 || response.statusCode == 204) {
       setState(() {
         articles.removeWhere((a) => a.articleID == articleId);
       });
@@ -116,7 +117,7 @@ class _AdminArticleManagerState extends State<AdminArticleManager> {
               ),
               DropdownButtonFormField<String>(
                 value: status,
-                items: ['Draft', 'Published', 'Archived']
+                items: ['Draft', 'Published']
                     .map((s) => DropdownMenuItem(value: s, child: Text(s)))
                     .toList(),
                 onChanged: (s) => status = s ?? 'Draft',
@@ -188,6 +189,8 @@ class _AdminArticleManagerState extends State<AdminArticleManager> {
 
   @override
   Widget build(BuildContext context) {
+    // Optionally, restrict access if needed (not strictly required if only admin/editor can navigate here)
+    // Example: If you pass roleID, you could check here.
     return Scaffold(
       appBar: AppBar(
         title: Text('Admin Article Manager'),
