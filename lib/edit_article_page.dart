@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'home_page.dart'; // for Article model
-import 'category.dart';  // for Category model
+import 'home_page.dart';
+import 'category.dart';
 import 'dart:convert';
+import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
-
+import 'package:http_parser/http_parser.dart';
 
 class EditArticlePage extends StatefulWidget {
   final Article? article;
@@ -26,6 +27,13 @@ class _EditArticlePageState extends State<EditArticlePage> {
   final _contentController = TextEditingController();
   String _status = 'Draft';
   List<int> _selectedCategoryIds = [];
+  XFile? _imageFile;
+  final ImagePicker _picker = ImagePicker();
+  bool _isUploading = false;
+  String? _uploadedImageUrl;
+
+  // ImgBB API key - Consider moving to environment variables
+  final String _imgbbApiKey = '10b390d333552ca6a62cebae7a643453';
 
   @override
   void initState() {
@@ -34,57 +42,134 @@ class _EditArticlePageState extends State<EditArticlePage> {
       _titleController.text = widget.article!.title;
       _contentController.text = widget.article!.content;
       _status = widget.article!.status;
-      // You can pre-fill _selectedCategoryIds if your Article model supports it
+      _uploadedImageUrl = widget.article!.imageUrl;
+      print('Existing article image URL: ${widget.article!.imageUrl}');
+
+      if (widget.article!.categoryID != null) {
+        _selectedCategoryIds.add(widget.article!.categoryID!);
+      }
+    }
+  }
+
+  Future<void> _pickImage() async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85, // Compress image
+      );
+      
+      if (image == null) return;
+      
+      setState(() {
+        _imageFile = image;
+        _isUploading = true;
+      });
+
+      final imageUrl = await _uploadImageToImgBB(image);
+      
+      if (imageUrl != null) {
+        setState(() {
+          _uploadedImageUrl = imageUrl;
+          print('Image uploaded successfully, URL: $imageUrl');
+        });
+      }
+    } catch (e) {
+      print('Error picking/uploading image: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to process image: $e')),
+      );
+    } finally {
+      setState(() => _isUploading = false);
+    }
+  }
+
+  Future<String?> _uploadImageToImgBB(XFile imageFile) async {
+    try {
+      final bytes = await imageFile.readAsBytes();
+      final url = Uri.parse('https://api.imgbb.com/1/upload');
+      
+      var request = http.MultipartRequest('POST', url)
+        ..fields['key'] = _imgbbApiKey
+        ..files.add(
+          http.MultipartFile.fromBytes(
+            'image',
+            bytes,
+            filename: 'image.jpg',
+            contentType: MediaType('image', 'jpeg'),
+          ),
+        );
+
+      print('Uploading image to ImgBB...');
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      
+      print('ImgBB response status: ${response.statusCode}');
+      print('ImgBB response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final jsonResponse = jsonDecode(response.body);
+        if (jsonResponse['success'] == true && jsonResponse['data'] != null) {
+          final imageUrl = jsonResponse['data']['display_url'];
+          print('ImgBB upload successful, URL: $imageUrl');
+          return imageUrl;
+        }
+      }
+      
+      throw Exception('ImgBB upload failed: ${response.statusCode}');
+    } catch (e) {
+      print('Error uploading to ImgBB: $e');
+      return null;
     }
   }
 
   Future<void> _submitArticle() async {
-    // Validate required fields
     if (_titleController.text.trim().isEmpty ||
         _contentController.text.trim().isEmpty ||
-        widget.categories.isEmpty ||
-        _selectedCategoryIds.isEmpty ||
-        _status.isEmpty) {
+        _selectedCategoryIds.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Vui lòng điền đầy đủ thông tin và chọn ít nhất một danh mục')),
+        const SnackBar(
+          content: Text('Please fill all fields and select at least one category'),
+        ),
       );
       return;
     }
 
-    final url = widget.article == null
-        ? 'http://10.0.2.2:5264/api/articles'
-        : 'http://10.0.2.2:5264/api/articles/${widget.article!.articleID}';
+    try {
+      final requestBody = {
+        'title': _titleController.text.trim(),
+        'content': _contentController.text.trim(),
+        'editorID': widget.editorId,
+        'status': _status,
+        'publishDate': DateTime.now().toIso8601String(),
+        'categoryIDs': _selectedCategoryIds,
+        'imageUrl': _uploadedImageUrl, // Send the image URL
+      };
 
-    final method = widget.article == null ? 'POST' : 'PUT';
+      print('Submitting article with body: ${json.encode(requestBody)}');
 
-    final response = await (method == 'POST'
-        ? http.post(Uri.parse(url),
-            headers: {'Content-Type': 'application/json'},
-            body: json.encode({
-              'title': _titleController.text.trim(),
-              'content': _contentController.text.trim(),
-              'editorID': widget.editorId,
-              'status': _status,
-              'publishDate': DateTime.now().toIso8601String(),
-              'categoryIDs': _selectedCategoryIds,
-            }))
-        : http.put(Uri.parse(url),
-            headers: {'Content-Type': 'application/json'},
-            body: json.encode({
-              'title': _titleController.text.trim(),
-              'content': _contentController.text.trim(),
-              'editorID': widget.editorId,
-              'status': _status,
-              'publishDate': DateTime.now().toIso8601String(),
-              'categoryIDs': _selectedCategoryIds,
-            })));
+      final url = widget.article == null
+          ? 'http://10.0.2.2:5264/api/articles'
+          : 'http://10.0.2.2:5264/api/articles/${widget.article!.articleID}';
 
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      Navigator.pop(context, true); // signal refresh
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Failed to save article'),
-      ));
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(requestBody),
+      );
+
+      print('Server response: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        Navigator.pop(context, true);
+      } else {
+        throw Exception('Failed to save article: ${response.body}');
+      }
+    } catch (e) {
+      print('Error saving article: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error saving article: $e')),
+      );
     }
   }
 
@@ -92,66 +177,146 @@ class _EditArticlePageState extends State<EditArticlePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title:
-            Text(widget.article == null ? 'Tạo bài báo mới' : 'Chỉnh sửa bài báo'),
+        title: Text(widget.article == null ? 'Create Article' : 'Edit Article'),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            TextField(
-              controller: _titleController,
-              decoration: const InputDecoration(labelText: 'Tiêu đề'),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: _contentController,
-              decoration: const InputDecoration(labelText: 'Nội dung'),
-              maxLines: 5,
-            ),
-            const SizedBox(height: 10),
-            DropdownButtonFormField<String>(
-              value: _status,
-              items: ['Draft', 'Published']
-                  .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-                  .toList(),
-              onChanged: (val) {
-                setState(() {
-                  _status = val!;
-                });
-              },
-              decoration: const InputDecoration(labelText: 'Trạng thái'),
-            ),
-            const SizedBox(height: 10),
-            Expanded(
-              child: ListView(
-                children: widget.categories.map((cat) {
-                  final selected = _selectedCategoryIds.contains(cat.categoryID);
-                  return CheckboxListTile(
-                    title: Text(cat.name),
-                    value: selected,
-                    onChanged: (val) {
-                      setState(() {
-                        if (val == true) {
-                          _selectedCategoryIds.add(cat.categoryID);
-                        } else {
-                          _selectedCategoryIds.remove(cat.categoryID);
-                        }
-                      });
-                    },
-                  );
-                }).toList(),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: _submitArticle,
-              child: Text(widget.article == null ? 'Đăng bài' : 'Cập nhật'),
-            ),
+            _buildImagePicker(),
+            const SizedBox(height: 16),
+            _buildForm(),
+            const SizedBox(height: 16),
+            _buildSubmitButton(),
           ],
         ),
       ),
     );
   }
+
+  Widget _buildImagePicker() {
+    return Container(
+      height: 200,
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: _isUploading
+          ? const Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 8),
+                  Text('Uploading image...'),
+                ],
+              ),
+            )
+          : Stack(
+              fit: StackFit.expand,
+              children: [
+                if (_uploadedImageUrl != null)
+                  Image.network(
+                    _uploadedImageUrl!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      print('Error loading image: $error');
+                      return const Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.broken_image, size: 40),
+                            Text('Failed to load image'),
+                          ],
+                        ),
+                      );
+                    },
+                  )
+                else
+                  const Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.image, size: 40, color: Colors.grey),
+                        Text('No image selected'),
+                      ],
+                    ),
+                  ),
+                Positioned(
+                  bottom: 8,
+                  right: 8,
+                  child: FloatingActionButton(
+                    mini: true,
+                    onPressed: _pickImage,
+                    child: const Icon(Icons.add_photo_alternate),
+                  ),
+                ),
+              ],
+            ),
+    );
+  }
+
+  Widget _buildForm() {
+    return Column(
+      children: [
+        TextField(
+          controller: _titleController,
+          decoration: const InputDecoration(labelText: 'Title'),
+        ),
+        const SizedBox(height: 10),
+        TextField(
+          controller: _contentController,
+          decoration: const InputDecoration(labelText: 'Content'),
+          maxLines: 5,
+        ),
+        const SizedBox(height: 10),
+        DropdownButtonFormField<String>(
+          value: _status,
+          items: ['Draft', 'Published']
+              .map((s) => DropdownMenuItem(value: s, child: Text(s)))
+              .toList(),
+          onChanged: (val) => setState(() => _status = val!),
+          decoration: const InputDecoration(labelText: 'Status'),
+        ),
+        const SizedBox(height: 10),
+        _buildCategorySelector(),
+      ],
+    );
+  }
+
+  Widget _buildCategorySelector() {
+    return Container(
+      height: 200,
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: ListView(
+        children: widget.categories.map((category) {
+          final isSelected = _selectedCategoryIds.contains(category.categoryID);
+          return CheckboxListTile(
+            title: Text(category.name),
+            value: isSelected,
+            onChanged: (selected) {
+              setState(() {
+                if (selected ?? false) {
+                  _selectedCategoryIds.add(category.categoryID);
+                } else {
+                  _selectedCategoryIds.remove(category.categoryID);
+                }
+              });
+            },
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildSubmitButton() {
+    return ElevatedButton(
+      onPressed: _submitArticle,
+      child: Text(widget.article == null ? 'Create' : 'Update'),
+    );
+  }
 }
-
-

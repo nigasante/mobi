@@ -30,6 +30,11 @@ class Article {
   });
 
   factory Article.fromJson(Map<String, dynamic> json) {
+    // Add debug print
+    print(
+      'Parsing article JSON: ${json['articleID']} with imageUrl: ${json['imageUrl']}',
+    );
+
     return Article(
       articleID: json['articleID'] ?? 0,
       title: json['title'] ?? '',
@@ -40,7 +45,7 @@ class Article {
       createdAt: json['createdAt'] ?? '',
       updatedAt: json['updatedAt'] ?? '',
       isDeleted: json['isDeleted'] ?? false,
-      imageUrl: json['imageUrl'],
+      imageUrl: json['imageUrl'] as String?,
     );
   }
 
@@ -67,8 +72,9 @@ class _HomePageState extends State<HomePage> {
   bool isLoading = true;
   int? selectedCategoryId;
   String? selectedCategory;
-  late int currentUserRoleId;
-  late int currentUserId;
+  // Initialize with default values to avoid late initialization errors
+  int currentUserRoleId = 0;
+  int currentUserId = 0;
 
   @override
   void initState() {
@@ -79,22 +85,36 @@ class _HomePageState extends State<HomePage> {
     fetchCategories();
   }
 
+  // Add this to your fetchArticles method
+
   Future<void> fetchArticles({int? categoryId}) async {
-    String url = 'http://10.0.2.2:5264/api/articles';
-    if (categoryId != null) {
-      url += '?categoryId=$categoryId';
-    }
-    final response = await http.get(Uri.parse(url));
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      setState(() {
-        articles = data.map((json) => Article.fromJson(json)).toList();
-        isLoading = false;
-      });
-    } else {
-      setState(() {
-        isLoading = false;
-      });
+    setState(() => isLoading = true);
+    try {
+      final response = await http.get(
+        Uri.parse('http://10.0.2.2:5264/api/articles'),
+      );
+      if (response.statusCode == 200) {
+        final String responseBody = response.body;
+        print('API Response: $responseBody');
+
+        final List<dynamic> data = json.decode(responseBody);
+
+        // Debug each article JSON
+        for (var item in data) {
+          print('Article ${item['articleID']} imageUrl: ${item['imageUrl']}');
+        }
+
+        setState(() {
+          articles = data.map((json) => Article.fromJson(json)).toList();
+          isLoading = false;
+        });
+      } else {
+        print('Failed to fetch articles: ${response.statusCode}');
+        setState(() => isLoading = false);
+      }
+    } catch (e) {
+      print('Error fetching articles: $e');
+      setState(() => isLoading = false);
     }
   }
 
@@ -159,7 +179,10 @@ class _HomePageState extends State<HomePage> {
           children: [
             DrawerHeader(
               decoration: BoxDecoration(color: Colors.blue),
-              child: Text('Danh mục', style: TextStyle(fontSize: 20, color: Colors.white)),
+              child: Text(
+                'Danh mục',
+                style: TextStyle(fontSize: 20, color: Colors.white),
+              ),
             ),
             ListTile(
               title: Text('Tất cả'),
@@ -182,9 +205,8 @@ class _HomePageState extends State<HomePage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => AdminArticleManager(
-                        adminUserId: currentUserId,
-                      ),
+                      builder: (context) =>
+                          AdminArticleManager(adminUserId: currentUserId),
                     ),
                   );
                 },
@@ -200,28 +222,78 @@ class _HomePageState extends State<HomePage> {
       body: isLoading
           ? Center(child: CircularProgressIndicator())
           : visibleArticles.isEmpty
-              ? Center(
-                  child: Text(
-                    "Không có bài viết trong danh mục này.",
-                    style: TextStyle(fontSize: 16),
-                  ),
-                )
-              : ListView.builder(
-                  itemCount: visibleArticles.length,
-                  itemBuilder: (context, index) => ListTile(
-                    title: Text(visibleArticles[index].title),
-                    subtitle: Text(visibleArticles[index].status),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              ArticleDetailPage(article: visibleArticles[index]),
+          ? Center(
+              child: Text(
+                "Không có bài viết trong danh mục này.",
+                style: TextStyle(fontSize: 16),
+              ),
+            )
+          : ListView.builder(
+              itemCount: visibleArticles.length,
+              itemBuilder: (context, index) => Card(
+                margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            ArticleDetailPage(article: visibleArticles[index]),
+                      ),
+                    );
+                  },
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Show image thumbnail if available
+                      if (visibleArticles[index].imageUrl != null &&
+                          visibleArticles[index].imageUrl!.isNotEmpty)
+                        Container(
+                          width: 100,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            image: DecorationImage(
+                              image: NetworkImage(
+                                visibleArticles[index].imageUrl!,
+                              ),
+                              fit: BoxFit.cover,
+                              onError: (error, stackTrace) {},
+                            ),
+                          ),
                         ),
-                      );
-                    },
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                visibleArticles[index].title,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                visibleArticles[index].status,
+                                style: TextStyle(
+                                  color:
+                                      visibleArticles[index].status ==
+                                          'Published'
+                                      ? Colors.green
+                                      : Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
+              ),
+            ),
     );
   }
 }
@@ -240,17 +312,48 @@ class ArticleDetailPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: Text(article.title), backgroundColor: Colors.blue),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: ListView.builder(
-          itemCount: paragraphs.length,
-          itemBuilder: (context, index) => Padding(
-            padding: const EdgeInsets.only(bottom: 16.0),
-            child: Text(
-              paragraphs[index],
-              style: TextStyle(fontSize: 16, height: 1.6),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (article.imageUrl != null && article.imageUrl!.isNotEmpty)
+              Container(
+                width: double.infinity,
+                height: 200,
+                child: Image.network(
+                  article.imageUrl!,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    print('Error loading detail image: $error');
+                    return Container(
+                      color: Colors.grey[200],
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.broken_image, size: 48, color: Colors.grey[400]),
+                          Text('Image not available', style: TextStyle(fontSize: 14)),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: paragraphs
+                    .map((paragraph) => Padding(
+                          padding: const EdgeInsets.only(bottom: 16.0),
+                          child: Text(
+                            paragraph,
+                            style: TextStyle(fontSize: 16, height: 1.6),
+                          ),
+                        ))
+                    .toList(),
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );

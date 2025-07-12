@@ -4,10 +4,10 @@ import 'dart:convert';
 
 import 'home_page.dart'; // For Article model
 import 'category.dart'; // For Category model
-import 'edit_article_page.dart'; // <-- Import your edit page
+import 'edit_article_page.dart';
 
 class AdminArticleManager extends StatefulWidget {
-  final int adminUserId; // Pass the admin's UserID
+  final int adminUserId;
 
   const AdminArticleManager({super.key, required this.adminUserId});
 
@@ -29,16 +29,38 @@ class _AdminArticleManagerState extends State<AdminArticleManager> {
 
   Future<void> fetchArticles() async {
     setState(() => isLoading = true);
-    final response = await http.get(
-      Uri.parse('http://10.0.2.2:5264/api/articles'),
-    );
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      setState(() {
-        articles = data.map((json) => Article.fromJson(json)).toList();
-        isLoading = false;
-      });
-    } else {
+    try {
+      final response = await http.get(
+        Uri.parse('http://10.0.2.2:5264/api/articles'),
+      );
+      if (response.statusCode == 200) {
+        final String responseBody = response.body;
+        print('API Response: $responseBody');
+
+        final List<dynamic> data = json.decode(responseBody);
+
+        // Debug each article JSON
+        for (var item in data) {
+          print('Article ${item['articleID']} imageUrl: ${item['imageUrl']}');
+        }
+
+        setState(() {
+          articles = data.map((json) => Article.fromJson(json)).toList();
+          isLoading = false;
+
+          // Print decoded articles for debugging
+          for (var article in articles) {
+            print(
+              'Parsed Article ${article.articleID}: imageUrl = ${article.imageUrl}',
+            );
+          }
+        });
+      } else {
+        print('Failed to fetch articles: ${response.statusCode}');
+        setState(() => isLoading = false);
+      }
+    } catch (e) {
+      print('Error fetching articles: $e');
       setState(() => isLoading = false);
     }
   }
@@ -74,123 +96,8 @@ class _AdminArticleManagerState extends State<AdminArticleManager> {
     }
   }
 
-  Future<void> createOrUpdateArticle({Article? article}) async {
-    final isNew = article == null;
-    final titleController = TextEditingController(text: article?.title ?? '');
-    final contentController = TextEditingController(
-      text: article?.content ?? '',
-    );
-    Category? selectedCategory = article != null
-        ? categories.firstWhere(
-            (c) => c.categoryID == (article as dynamic).categoryID,
-            orElse: () => categories.first,
-          )
-        : null;
-    String status = article?.status ?? 'Draft';
-
-    await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(isNew ? 'Create Article' : 'Update Article'),
-        content: SingleChildScrollView(
-          child: Column(
-            children: [
-              TextField(
-                controller: titleController,
-                decoration: InputDecoration(labelText: 'Title'),
-              ),
-              TextField(
-                controller: contentController,
-                decoration: InputDecoration(labelText: 'Content'),
-                maxLines: 5,
-              ),
-              DropdownButtonFormField<Category>(
-                value: selectedCategory,
-                items: categories
-                    .map(
-                      (cat) =>
-                          DropdownMenuItem(value: cat, child: Text(cat.name)),
-                    )
-                    .toList(),
-                onChanged: (cat) => selectedCategory = cat,
-                decoration: InputDecoration(labelText: 'Category'),
-              ),
-              DropdownButtonFormField<String>(
-                value: status,
-                items: ['Draft', 'Published']
-                    .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-                    .toList(),
-                onChanged: (s) => status = s ?? 'Draft',
-                decoration: InputDecoration(labelText: 'Status'),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final body = {
-                'title': titleController.text,
-                'content': contentController.text,
-                'editorID': widget.adminUserId,
-                'status': status,
-                'categoryID': selectedCategory?.categoryID,
-              };
-              http.Response response;
-              if (isNew) {
-                final uri = Uri.http('10.0.2.2:5264', '/api/articles/add', {
-                  'title': titleController.text,
-                  'content': contentController.text,
-                  'editorID': widget.adminUserId.toString(),
-                  'status': status,
-                  'publishDate': DateTime.now().toIso8601String(),
-                });
-
-                response = await http.post(uri);
-              } else {
-                response = await http.put(
-                  Uri.parse(
-                    'http://10.0.2.2:5264/api/articles/${article.articleID}',
-                  ),
-                  headers: {'Content-Type': 'application/json'},
-                  body: json.encode(body),
-                );
-              }
-              if (response.statusCode == 200 || response.statusCode == 201) {
-                Navigator.pop(context);
-                fetchArticles();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      isNew ? 'Article created' : 'Article updated',
-                    ),
-                  ),
-                );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Failed to ${isNew ? 'create' : 'update'} article',
-                    ),
-                  ),
-                );
-              }
-            },
-            child: Text(isNew ? 'Create' : 'Update'),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    // Optionally, restrict access if needed (not strictly required if only admin/editor can navigate here)
-    // Example: If you pass roleID, you could check here.
     return Scaffold(
       appBar: AppBar(
         title: Text('Admin Article Manager'),
@@ -213,6 +120,11 @@ class _AdminArticleManagerState extends State<AdminArticleManager> {
             },
             tooltip: 'Create Article',
           ),
+          IconButton(
+            icon: Icon(Icons.refresh),
+            onPressed: fetchArticles,
+            tooltip: 'Refresh Articles',
+          ),
         ],
       ),
       body: isLoading
@@ -221,11 +133,28 @@ class _AdminArticleManagerState extends State<AdminArticleManager> {
               itemCount: articles.length,
               itemBuilder: (context, index) {
                 final article = articles[index];
+                // Debug image URL for each article
+                print(
+                  'Building article ${article.articleID} with imageUrl: ${article.imageUrl}',
+                );
+
                 return Card(
                   margin: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   child: ListTile(
+                    leading: _buildArticleImage(article),
                     title: Text(article.title),
-                    subtitle: Text('Status: ${article.status}'),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Status: ${article.status}'),
+                        if (article.imageUrl != null &&
+                            article.imageUrl!.isNotEmpty)
+                          Text(
+                            'Image URL: ${article.imageUrl!.length > 30 ? article.imageUrl!.substring(0, 30) + "..." : article.imageUrl}',
+                            style: TextStyle(fontSize: 10, color: Colors.blue),
+                          ),
+                      ],
+                    ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -252,10 +181,82 @@ class _AdminArticleManagerState extends State<AdminArticleManager> {
                         ),
                       ],
                     ),
+                    isThreeLine:
+                        article.imageUrl != null &&
+                        article.imageUrl!.isNotEmpty,
                   ),
                 );
               },
             ),
+    );
+  }
+
+  Widget _buildArticleImage(Article article) {
+    if (article.imageUrl == null || article.imageUrl!.isEmpty) {
+      return Container(
+        width: 60,
+        height: 60,
+        decoration: BoxDecoration(
+          color: Colors.grey[200],
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(
+          Icons.image_not_supported,
+          size: 24,
+          color: Colors.grey[400],
+        ),
+      );
+    }
+
+    print('Loading image in admin manager: ${article.imageUrl}');
+
+    return Container(
+      width: 60,
+      height: 60,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.network(
+          article.imageUrl!,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            print('Error loading image in admin manager: $error');
+            return Container(
+              decoration: BoxDecoration(
+                color: Colors.red[100],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.broken_image, size: 20, color: Colors.red[900]),
+                  Text(
+                    'Error',
+                    style: TextStyle(fontSize: 10, color: Colors.red[900]),
+                  ),
+                ],
+              ),
+            );
+          },
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return Container(
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Center(
+                child: CircularProgressIndicator(
+                  value: loadingProgress.expectedTotalBytes != null
+                      ? loadingProgress.cumulativeBytesLoaded /
+                            loadingProgress.expectedTotalBytes!
+                      : null,
+                  strokeWidth: 2,
+                ),
+              ),
+            );
+          },
+        ),
+      ),
     );
   }
 }

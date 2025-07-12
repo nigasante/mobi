@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using NewsApi.Data;
 using NewsApi.Models;
 
 namespace NewsApi.Controllers
@@ -7,36 +9,54 @@ namespace NewsApi.Controllers
     [Route("api/[controller]")]
     public class ArticleVersionsController : ControllerBase
     {
-        // GET: api/articleversions/5
+        private readonly AppDbContext _context;
+
+        public ArticleVersionsController(AppDbContext context)
+        {
+            _context = context;
+        }
+
         [HttpGet("{id}")]
         public async Task<ActionResult<ArticleVersion>> GetArticleVersion(int id)
         {
-            // Implementation here
-            return Ok();
+            var version = await _context.ArticleVersions
+                .Include(v => v.Editor)
+                .FirstOrDefaultAsync(v => v.VersionID == id);
+
+            if (version == null)
+                return NotFound();
+
+            return Ok(version);
         }
 
-        // POST: api/articleversions
         [HttpPost]
-        public async Task<ActionResult<ArticleVersion>> CreateArticleVersion(ArticleVersion articleVersion)
+        public async Task<ActionResult<ArticleVersion>> CreateArticleVersion([FromBody] ArticleVersionDto dto)
         {
-            // Implementation here
-            return CreatedAtAction(nameof(GetArticleVersion), new { id = articleVersion.VersionID }, articleVersion);
+            var version = new ArticleVersion
+            {
+                ArticleID = dto.ArticleID,
+                Title = dto.Title,
+                Content = dto.Content,
+                EditorID = dto.EditorID,
+                ImageUrl = dto.ImageUrl, // Include ImageUrl
+                CreatedAt = DateTime.UtcNow,
+                IsPublished = false
+            };
+
+            _context.ArticleVersions.Add(version);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetArticleVersion), 
+                new { id = version.VersionID }, version);
         }
 
-        // POST: api/articleversions/5/publish
-        [HttpPost("{id}/publish")]
-        public async Task<IActionResult> PublishVersion(int id)
+        public class ArticleVersionDto
         {
-            // Implementation here - set IsPublished = true
-            return NoContent();
-        }
-
-        // GET: api/articleversions/article/5
-        [HttpGet("article/{articleId}")]
-        public async Task<ActionResult<IEnumerable<ArticleVersion>>> GetVersionsByArticle(int articleId)
-        {
-            // Implementation here
-            return Ok();
+            public int ArticleID { get; set; }
+            public string Title { get; set; } = string.Empty;
+            public string Content { get; set; } = string.Empty;
+            public int EditorID { get; set; }
+            public string? ImageUrl { get; set; }
         }
     }
 }

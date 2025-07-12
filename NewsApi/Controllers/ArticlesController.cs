@@ -16,11 +16,25 @@ namespace NewsApi.Controllers
             _context = context;
         }
 
+        // Updated to include imageUrl in response
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Article>>> GetArticles([FromQuery] int? categoryId)
         {
             var query = _context.Articles
-                .Where(a => !a.IsDeleted);
+                .Where(a => !a.IsDeleted)
+                .Select(a => new
+                {
+                    a.ArticleID,
+                    a.Title,
+                    a.Content,
+                    a.EditorID,
+                    a.Status,
+                    a.PublishDate,
+                    a.CreatedAt,
+                    a.UpdatedAt,
+                    a.IsDeleted,
+                    a.ImageUrl // Include ImageUrl in response
+                });
 
             if (categoryId.HasValue)
             {
@@ -34,23 +48,7 @@ namespace NewsApi.Controllers
             return Ok(articles);
         }
 
-
-
-
-        // GET: api/articles/{id}
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Article>> GetArticle(int id)
-        {
-            var article = await _context.Articles
-                .FirstOrDefaultAsync(a => a.ArticleID == id && !a.IsDeleted);
-
-            if (article == null)
-                return NotFound();
-
-            return Ok(article);
-        }
-
-        // POST: api/articles/add
+        // Updated POST endpoint to handle imageUrl
         [HttpPost]
         public async Task<ActionResult> AddArticle([FromBody] ArticleDto dto)
         {
@@ -68,13 +66,14 @@ namespace NewsApi.Controllers
                 EditorID = dto.EditorID,
                 Status = dto.Status,
                 PublishDate = dto.PublishDate,
+                ImageUrl = dto.ImageUrl, // Add ImageUrl
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
                 IsDeleted = false
             };
 
             _context.Articles.Add(article);
-            await _context.SaveChangesAsync(); // Save to get the ArticleID
+            await _context.SaveChangesAsync();
 
             if (dto.CategoryIDs != null && dto.CategoryIDs.Any())
             {
@@ -86,7 +85,6 @@ namespace NewsApi.Controllers
                         CategoryID = categoryId
                     });
                 }
-
                 await _context.SaveChangesAsync();
             }
 
@@ -94,11 +92,12 @@ namespace NewsApi.Controllers
             {
                 message = "Article created successfully",
                 article.ArticleID,
-                article.Title
+                article.Title,
+                article.ImageUrl // Include ImageUrl in response
             });
         }
 
-        // PUT: api/articles/update
+        // Updated PUT endpoint to handle imageUrl
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateArticle(int id, [FromBody] ArticleDto dto)
         {
@@ -113,51 +112,41 @@ namespace NewsApi.Controllers
             article.EditorID = dto.EditorID;
             article.Status = dto.Status;
             article.PublishDate = dto.PublishDate;
+            article.ImageUrl = dto.ImageUrl; // Update ImageUrl
             article.UpdatedAt = DateTime.UtcNow;
 
             _context.Entry(article).State = EntityState.Modified;
 
-            // Remove old category links
-            var existingLinks = _context.ArticleCategories
-                .Where(ac => ac.ArticleID == id);
+            // Update categories
+            var existingLinks = await _context.ArticleCategories
+                .Where(ac => ac.ArticleID == id)
+                .ToListAsync();
             _context.ArticleCategories.RemoveRange(existingLinks);
 
-            // Add new category links
-            foreach (var categoryId in dto.CategoryIDs)
+            if (dto.CategoryIDs != null)
             {
-                _context.ArticleCategories.Add(new ArticleCategory
+                foreach (var categoryId in dto.CategoryIDs)
                 {
-                    ArticleID = article.ArticleID,
-                    CategoryID = categoryId
-                });
+                    _context.ArticleCategories.Add(new ArticleCategory
+                    {
+                        ArticleID = article.ArticleID,
+                        CategoryID = categoryId
+                    });
+                }
             }
 
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "Article updated successfully" });
+            return Ok(new
+            {
+                message = "Article updated successfully",
+                article.ArticleID,
+                article.Title,
+                article.ImageUrl // Include ImageUrl in response
+            });
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteArticle(int id)
-        {
-            var article = await _context.Articles.FindAsync(id);
-
-            if (article == null)
-                return NotFound("Article not found");
-
-            _context.Articles.Remove(article);
-
-            // Remove related ArticleCategory entries
-            var relatedCategories = _context.ArticleCategories.Where(ac => ac.ArticleID == id);
-            _context.ArticleCategories.RemoveRange(relatedCategories);
-
-            await _context.SaveChangesAsync();
-
-            return Ok(new { message = "Article permanently deleted" });
-        }
-
-
-
+        // Updated DTO to include ImageUrl
         public class ArticleDto
         {
             public string Title { get; set; } = null!;
@@ -165,8 +154,8 @@ namespace NewsApi.Controllers
             public int EditorID { get; set; }
             public string Status { get; set; } = null!;
             public DateTime? PublishDate { get; set; }
-            public List<int> CategoryIDs { get; set; } = new(); // multiple category support
+            public string? ImageUrl { get; set; } // Add ImageUrl property
+            public List<int> CategoryIDs { get; set; } = new();
         }
-
     }
 }

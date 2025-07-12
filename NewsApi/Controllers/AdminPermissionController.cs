@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using NewsApi.Data;
 using NewsApi.Models;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace NewsApi.Controllers
 {
@@ -9,44 +9,61 @@ namespace NewsApi.Controllers
     [Route("api/[controller]")]
     public class AdminPermissionController : ControllerBase
     {
-        private static List<AdminPermission> _permissions = new List<AdminPermission>();
+        private readonly AppDbContext _context;
+
+        public AdminPermissionController(AppDbContext context)
+        {
+            _context = context;
+        }
 
         [HttpGet]
-        public ActionResult<IEnumerable<AdminPermission>> GetAll()
+        public async Task<ActionResult<IEnumerable<AdminPermission>>> GetAll()
         {
-            return Ok(_permissions);
+            var permissions = await _context.AdminPermissions
+                .Include(p => p.Admin)
+                .Include(p => p.Permission)
+                .ToListAsync();
+            return Ok(permissions);
         }
 
         [HttpGet("{id}")]
-        public ActionResult<AdminPermission> Get(int id)
+        public async Task<ActionResult<AdminPermission>> Get(int id)
         {
-            var item = _permissions.FirstOrDefault(x => x.AdminID == id);
-            if (item == null) return NotFound();
-            return Ok(item);
+            var permission = await _context.AdminPermissions
+                .Include(p => p.Admin)
+                .Include(p => p.Permission)
+                .FirstOrDefaultAsync(p => p.AdminID == id);
+
+            if (permission == null) 
+                return NotFound();
+
+            return Ok(permission);
         }
 
         [HttpPost]
-        public ActionResult<AdminPermission> Create(AdminPermission permission)
+        public async Task<ActionResult<AdminPermission>> Create(AdminPermission permission)
         {
-            _permissions.Add(permission);
-            return CreatedAtAction(nameof(Get), new { id = permission.AdminID }, permission);
+            _context.AdminPermissions.Add(permission);
+            await _context.SaveChangesAsync();
+            
+            return CreatedAtAction(nameof(Get), 
+                new { id = permission.AdminID }, permission);
         }
 
-        [HttpPut("{id}")]
-        public IActionResult Update(int id, AdminPermission permission)
+        [HttpDelete("{adminId}/{permissionId}")]
+        public async Task<IActionResult> Delete(int adminId, int permissionId)
         {
-            var item = _permissions.FirstOrDefault(x => x.AdminID == id);
-            if (item == null) return NotFound();
-            item.PermissionID = permission.PermissionID;
-            return NoContent();
-        }
+            var permission = await _context.AdminPermissions
+                .FirstOrDefaultAsync(p => 
+                    p.AdminID == adminId && 
+                    p.PermissionID == permissionId);
 
-        [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
-        {
-            var item = _permissions.FirstOrDefault(x => x.AdminID == id);
-            if (item == null) return NotFound();
-            _permissions.Remove(item);
+            if (permission == null) 
+                return NotFound();
+
+            _context.AdminPermissions.Remove(permission);
+            await _context.SaveChangesAsync();
+            
             return NoContent();
         }
     }

@@ -15,6 +15,12 @@ dependencies:
   flutter_quill: ^11.4.1
   image_picker: ^1.0.7
   cupertino_icons: ^1.0.8
+  firebase_core: ^2.24.2
+  firebase_storage: ^11.6.0
+  firebase_auth: ^4.16.0
+  cloud_firestore: ^4.14.0
+  http_parser: ^4.0.2  # For handling multipart requests
+  mime: ^1.0.4
 
 dev_dependencies:
   flutter_test:

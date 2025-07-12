@@ -1,4 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Add Internet permission for ImgBB API access -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Add storage access permission for image picking -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    
     <application
         android:label="flutter_application_3"
         android:name="${applicationName}"
