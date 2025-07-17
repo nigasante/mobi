@@ -27,30 +27,12 @@ class _EditArticlePageState extends State<EditArticlePage> {
   final _contentController = TextEditingController();
   String _status = 'Draft';
   List<int> _selectedCategoryIds = [];
-  late XFile _imageFile;
+  XFile? _imageFile; // Make nullable
   final ImagePicker _picker = ImagePicker();
   bool _isUploading = false;
   String? _uploadedImageUrl;
 
-
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.article != null) {
-      _titleController.text = widget.article!.title;
-      _contentController.text = widget.article!.content;
-      _status = widget.article!.status;
-      _uploadedImageUrl = widget.article!.imageUrl;
-      print('Existing article image URL: ${widget.article!.imageUrl}');
-
-      if (widget.article!.categoryID != null) {
-        _selectedCategoryIds.add(widget.article!.categoryID!);
-      }
-    }
-  }
-
-   Future<void> _pickImage() async {
+  Future<void> _pickImage() async {
     try {
       final XFile? image = await _picker.pickImage(
         source: ImageSource.gallery,
@@ -69,24 +51,23 @@ class _EditArticlePageState extends State<EditArticlePage> {
       if (imageUrl != null) {
         setState(() {
           _uploadedImageUrl = imageUrl;
-          print('Image uploaded successfully, URL: $imageUrl');
+          _isUploading = false;
         });
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to upload image')),
-        );
+        setState(() => _isUploading = false);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Failed to upload image')));
       }
     } catch (e) {
-      print('Error picking/uploading image: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to process image: $e')),
-      );
-    } finally {
+      print('Error in image upload: $e');
       setState(() => _isUploading = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Upload error: $e')));
     }
   }
 
-  
   Future<void> _submitArticle() async {
     if (_titleController.text.trim().isEmpty ||
         _contentController.text.trim().isEmpty ||
