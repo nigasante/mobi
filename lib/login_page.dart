@@ -36,10 +36,8 @@ class _LoginPageState extends State<LoginPage> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => HomePage(
-            currentUserId: userId,
-            currentUserRoleId: roleId,
-          ),
+          builder: (context) =>
+              HomePage(currentUserId: userId, currentUserRoleId: roleId),
         ),
       );
     } else {
@@ -48,6 +46,7 @@ class _LoginPageState extends State<LoginPage> {
       });
     }
   }
+
   void _showSignUpDialog() {
     final nameController = TextEditingController();
     final emailController = TextEditingController();

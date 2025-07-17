@@ -4,7 +4,7 @@ import 'category.dart';
 import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
-import 'package:http_parser/http_parser.dart';
+import 'cloudinary_service.dart';
 
 class EditArticlePage extends StatefulWidget {
   final Article? article;
@@ -27,13 +27,12 @@ class _EditArticlePageState extends State<EditArticlePage> {
   final _contentController = TextEditingController();
   String _status = 'Draft';
   List<int> _selectedCategoryIds = [];
-  XFile? _imageFile;
+  late XFile _imageFile;
   final ImagePicker _picker = ImagePicker();
   bool _isUploading = false;
   String? _uploadedImageUrl;
 
-  // ImgBB API key - Consider moving to environment variables
-  final String _imgbbApiKey = '10b390d333552ca6a62cebae7a643453';
+
 
   @override
   void initState() {
@@ -51,27 +50,31 @@ class _EditArticlePageState extends State<EditArticlePage> {
     }
   }
 
-  Future<void> _pickImage() async {
+   Future<void> _pickImage() async {
     try {
       final XFile? image = await _picker.pickImage(
         source: ImageSource.gallery,
-        imageQuality: 85, // Compress image
+        imageQuality: 85,
       );
-      
+
       if (image == null) return;
-      
+
       setState(() {
         _imageFile = image;
         _isUploading = true;
       });
 
-      final imageUrl = await _uploadImageToImgBB(image);
-      
+      final imageUrl = await CloudinaryService.uploadImage(image);
+
       if (imageUrl != null) {
         setState(() {
           _uploadedImageUrl = imageUrl;
           print('Image uploaded successfully, URL: $imageUrl');
         });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to upload image')),
+        );
       }
     } catch (e) {
       print('Error picking/uploading image: $e');
@@ -83,52 +86,16 @@ class _EditArticlePageState extends State<EditArticlePage> {
     }
   }
 
-  Future<String?> _uploadImageToImgBB(XFile imageFile) async {
-    try {
-      final bytes = await imageFile.readAsBytes();
-      final url = Uri.parse('https://api.imgbb.com/1/upload');
-      
-      var request = http.MultipartRequest('POST', url)
-        ..fields['key'] = _imgbbApiKey
-        ..files.add(
-          http.MultipartFile.fromBytes(
-            'image',
-            bytes,
-            filename: 'image.jpg',
-            contentType: MediaType('image', 'jpeg'),
-          ),
-        );
-
-      print('Uploading image to ImgBB...');
-      final streamedResponse = await request.send();
-      final response = await http.Response.fromStream(streamedResponse);
-      
-      print('ImgBB response status: ${response.statusCode}');
-      print('ImgBB response body: ${response.body}');
-
-      if (response.statusCode == 200) {
-        final jsonResponse = jsonDecode(response.body);
-        if (jsonResponse['success'] == true && jsonResponse['data'] != null) {
-          final imageUrl = jsonResponse['data']['display_url'];
-          print('ImgBB upload successful, URL: $imageUrl');
-          return imageUrl;
-        }
-      }
-      
-      throw Exception('ImgBB upload failed: ${response.statusCode}');
-    } catch (e) {
-      print('Error uploading to ImgBB: $e');
-      return null;
-    }
-  }
-
+  
   Future<void> _submitArticle() async {
     if (_titleController.text.trim().isEmpty ||
         _contentController.text.trim().isEmpty ||
         _selectedCategoryIds.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please fill all fields and select at least one category'),
+          content: Text(
+            'Please fill all fields and select at least one category',
+          ),
         ),
       );
       return;
@@ -167,9 +134,9 @@ class _EditArticlePageState extends State<EditArticlePage> {
       }
     } catch (e) {
       print('Error saving article: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error saving article: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error saving article: $e')));
     }
   }
 
@@ -273,9 +240,10 @@ class _EditArticlePageState extends State<EditArticlePage> {
         const SizedBox(height: 10),
         DropdownButtonFormField<String>(
           value: _status,
-          items: ['Draft', 'Published']
-              .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-              .toList(),
+          items: [
+            'Draft',
+            'Published',
+          ].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
           onChanged: (val) => setState(() => _status = val!),
           decoration: const InputDecoration(labelText: 'Status'),
         ),
