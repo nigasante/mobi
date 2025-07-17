@@ -59,12 +59,13 @@ class _EditArticlePageState extends State<EditArticlePage> {
       setState(() {
         _imageFile = image;
         _previewImageUrl = image.path;
+        _uploadedImageUrl = null; // Reset this when new image is selected
       });
     } catch (e) {
       print('Error picking image: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error selecting image: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error selecting image: $e')));
     }
   }
 
@@ -74,7 +75,9 @@ class _EditArticlePageState extends State<EditArticlePage> {
         _selectedCategoryIds.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please fill all fields and select at least one category'),
+          content: Text(
+            'Please fill all fields and select at least one category',
+          ),
         ),
       );
       return;
@@ -122,9 +125,9 @@ class _EditArticlePageState extends State<EditArticlePage> {
       }
     } catch (e) {
       print('Error saving article: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error saving article: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error saving article: $e')));
     }
   }
 
@@ -173,10 +176,7 @@ class _EditArticlePageState extends State<EditArticlePage> {
               children: [
                 if (_previewImageUrl != null)
                   _imageFile != null
-                      ? Image.file(
-                          File(_previewImageUrl!),
-                          fit: BoxFit.cover,
-                        )
+                      ? Image.file(File(_previewImageUrl!), fit: BoxFit.cover)
                       : Image.network(
                           _previewImageUrl!,
                           fit: BoxFit.cover,
@@ -232,9 +232,10 @@ class _EditArticlePageState extends State<EditArticlePage> {
         const SizedBox(height: 10),
         DropdownButtonFormField<String>(
           value: _status,
-          items: ['Draft', 'Published']
-              .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-              .toList(),
+          items: [
+            'Draft',
+            'Published',
+          ].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
           onChanged: (val) => setState(() => _status = val!),
           decoration: const InputDecoration(labelText: 'Status'),
         ),
