@@ -3,37 +3,32 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:convert';
 
 class CloudinaryService {
-  static const String cloudName = 'dgp3eeblm';
-  static const String uploadPreset = 'newsapi123';  // Make sure this matches your Postman request
-
   static Future<String?> uploadImage(XFile imageFile) async {
     try {
       final url = Uri.parse(
-        'https://api.cloudinary.com/v1_1/$cloudName/image/upload'
+        'https://api.cloudinary.com/v1_1/dgp3eeblm/image/upload',
       );
 
       final bytes = await imageFile.readAsBytes();
-      
-      // Create multipart request matching your Postman configuration
+
       final request = http.MultipartRequest('POST', url);
-      
-      // Add file first
+
+      // Add fields in correct order
+      request.fields['upload_preset'] = "newsapi123";
+
       request.files.add(
         http.MultipartFile.fromBytes(
           'file',
           bytes,
-          filename: imageFile.name,
+          filename: 'image_${DateTime.now().millisecondsSinceEpoch}.jpg',
         ),
       );
-      
-      // Add upload_preset after file
-      request.fields['upload_preset'] = uploadPreset;
 
       print('Sending request to Cloudinary...');
       final response = await request.send();
       final responseData = await response.stream.toBytes();
       final responseString = String.fromCharCodes(responseData);
-      
+
       print('Cloudinary response status: ${response.statusCode}');
       print('Cloudinary response: $responseString');
 
@@ -45,7 +40,6 @@ class CloudinaryService {
       }
 
       print('Upload failed with status: ${response.statusCode}');
-      print('Error response: $responseString');
       throw Exception('Upload failed: ${response.statusCode}');
     } catch (e) {
       print('Cloudinary upload error: $e');

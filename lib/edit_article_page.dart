@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'home_page.dart';
 import 'category.dart';
 import 'dart:convert';
+import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'cloudinary_service.dart';
@@ -27,10 +28,24 @@ class _EditArticlePageState extends State<EditArticlePage> {
   final _contentController = TextEditingController();
   String _status = 'Draft';
   List<int> _selectedCategoryIds = [];
-  XFile? _imageFile; // Make nullable
+  XFile? _imageFile;
   final ImagePicker _picker = ImagePicker();
   bool _isUploading = false;
   String? _uploadedImageUrl;
+  String? _previewImageUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.article != null) {
+      _titleController.text = widget.article!.title;
+      _contentController.text = widget.article!.content;
+      _status = widget.article!.status;
+      _selectedCategoryIds = widget.article!.categoryID;
+      _uploadedImageUrl = widget.article!.imageUrl;
+      _previewImageUrl = widget.article!.imageUrl;
+    }
+  }
 
   Future<void> _pickImage() async {
     try {
@@ -43,28 +58,13 @@ class _EditArticlePageState extends State<EditArticlePage> {
 
       setState(() {
         _imageFile = image;
-        _isUploading = true;
+        _previewImageUrl = image.path;
       });
-
-      final imageUrl = await CloudinaryService.uploadImage(image);
-
-      if (imageUrl != null) {
-        setState(() {
-          _uploadedImageUrl = imageUrl;
-          _isUploading = false;
-        });
-      } else {
-        setState(() => _isUploading = false);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Failed to upload image')));
-      }
     } catch (e) {
-      print('Error in image upload: $e');
-      setState(() => _isUploading = false);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Upload error: $e')));
+      print('Error picking image: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error selecting image: $e')),
+      );
     }
   }
 
@@ -74,15 +74,27 @@ class _EditArticlePageState extends State<EditArticlePage> {
         _selectedCategoryIds.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'Please fill all fields and select at least one category',
-          ),
+          content: Text('Please fill all fields and select at least one category'),
         ),
       );
       return;
     }
 
     try {
+      // Upload image if selected but not yet uploaded
+      if (_imageFile != null && _uploadedImageUrl == null) {
+        setState(() => _isUploading = true);
+        _uploadedImageUrl = await CloudinaryService.uploadImage(_imageFile!);
+        setState(() => _isUploading = false);
+
+        if (_uploadedImageUrl == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to upload image')),
+          );
+          return;
+        }
+      }
+
       final requestBody = {
         'title': _titleController.text.trim(),
         'content': _contentController.text.trim(),
@@ -90,10 +102,8 @@ class _EditArticlePageState extends State<EditArticlePage> {
         'status': _status,
         'publishDate': DateTime.now().toIso8601String(),
         'categoryIDs': _selectedCategoryIds,
-        'imageUrl': _uploadedImageUrl, // Send the image URL
+        'imageUrl': _uploadedImageUrl,
       };
-
-      print('Submitting article with body: ${json.encode(requestBody)}');
 
       final url = widget.article == null
           ? 'http://10.0.2.2:5264/api/articles'
@@ -105,9 +115,6 @@ class _EditArticlePageState extends State<EditArticlePage> {
         body: json.encode(requestBody),
       );
 
-      print('Server response: ${response.statusCode}');
-      print('Response body: ${response.body}');
-
       if (response.statusCode == 200 || response.statusCode == 201) {
         Navigator.pop(context, true);
       } else {
@@ -115,9 +122,9 @@ class _EditArticlePageState extends State<EditArticlePage> {
       }
     } catch (e) {
       print('Error saving article: $e');
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error saving article: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error saving article: $e')),
+      );
     }
   }
 
@@ -164,23 +171,27 @@ class _EditArticlePageState extends State<EditArticlePage> {
           : Stack(
               fit: StackFit.expand,
               children: [
-                if (_uploadedImageUrl != null)
-                  Image.network(
-                    _uploadedImageUrl!,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      print('Error loading image: $error');
-                      return const Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.broken_image, size: 40),
-                            Text('Failed to load image'),
-                          ],
-                        ),
-                      );
-                    },
-                  )
+                if (_previewImageUrl != null)
+                  _imageFile != null
+                      ? Image.file(
+                          File(_previewImageUrl!),
+                          fit: BoxFit.cover,
+                        )
+                      : Image.network(
+                          _previewImageUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Center(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.broken_image, size: 40),
+                                  Text('Failed to load image'),
+                                ],
+                              ),
+                            );
+                          },
+                        )
                 else
                   const Center(
                     child: Column(
@@ -221,10 +232,9 @@ class _EditArticlePageState extends State<EditArticlePage> {
         const SizedBox(height: 10),
         DropdownButtonFormField<String>(
           value: _status,
-          items: [
-            'Draft',
-            'Published',
-          ].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
+          items: ['Draft', 'Published']
+              .map((s) => DropdownMenuItem(value: s, child: Text(s)))
+              .toList(),
           onChanged: (val) => setState(() => _status = val!),
           decoration: const InputDecoration(labelText: 'Status'),
         ),
@@ -267,5 +277,12 @@ class _EditArticlePageState extends State<EditArticlePage> {
       onPressed: _submitArticle,
       child: Text(widget.article == null ? 'Create' : 'Update'),
     );
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _contentController.dispose();
+    super.dispose();
   }
 }
