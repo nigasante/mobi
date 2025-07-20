@@ -83,21 +83,25 @@ class _EditArticlePageState extends State<EditArticlePage> {
       return;
     }
 
+    setState(() => _isUploading = true);
+
     try {
-      // Upload image if selected but not yet uploaded
-      if (_imageFile != null && _uploadedImageUrl == null) {
-        setState(() => _isUploading = true);
+      // Handle image upload
+      if (_imageFile != null) {
+        print('Uploading image to Cloudinary...');
         _uploadedImageUrl = await CloudinaryService.uploadImage(_imageFile!);
-        setState(() => _isUploading = false);
 
         if (_uploadedImageUrl == null) {
+          setState(() => _isUploading = false);
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Failed to upload image')),
           );
           return;
         }
+        print('Image uploaded successfully: $_uploadedImageUrl');
       }
 
+      // Prepare article data
       final requestBody = {
         'title': _titleController.text.trim(),
         'content': _contentController.text.trim(),
@@ -105,9 +109,12 @@ class _EditArticlePageState extends State<EditArticlePage> {
         'status': _status,
         'publishDate': DateTime.now().toIso8601String(),
         'categoryIDs': _selectedCategoryIds,
-        'imageUrl': _uploadedImageUrl,
+        'imageUrl':
+            _uploadedImageUrl ??
+            widget.article?.imageUrl, // Use existing URL if no new image
       };
 
+      // Send to your API
       final url = widget.article == null
           ? 'http://10.0.2.2:5264/api/articles'
           : 'http://10.0.2.2:5264/api/articles/${widget.article!.articleID}';
@@ -125,7 +132,7 @@ class _EditArticlePageState extends State<EditArticlePage> {
             );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        Navigator.pop(context, true);
+        Navigator.pop(context, true); // Return true to trigger refresh
       } else {
         throw Exception('Failed to save article: ${response.body}');
       }
@@ -134,8 +141,11 @@ class _EditArticlePageState extends State<EditArticlePage> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Error saving article: $e')));
+    } finally {
+      setState(() => _isUploading = false);
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

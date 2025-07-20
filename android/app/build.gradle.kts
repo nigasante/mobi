@@ -1,16 +1,20 @@
 plugins {
     id("com.android.application")
-    // START: FlutterFire Configuration
-    id("com.google.gms.google-services")
-    // END: FlutterFire Configuration
     id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
 }
 
 android {
     namespace = "com.example.flutter_application_3"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = "27.0.12077973"  // Updated t
+    compileSdk = 35  // Set explicitly for image_picker
+
+    defaultConfig {
+        applicationId = "com.example.flutter_application_3"
+        minSdk = 21
+        targetSdk = 33
+        versionCode = 1
+        versionName = "1.0"
+    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -18,21 +22,11 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
-    }
-
-    defaultConfig {
-        applicationId = "com.example.flutter_application_3"
-        minSdk = 21  // Set explicitly for Firebase
-        targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
+        jvmTarget = "11"
     }
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
         }
     }
@@ -43,6 +37,6 @@ flutter {
 }
 
 dependencies {
-    // Add the Firebase BoM
-    implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
+    // No additional dependencies needed for Cloudinary
+    // since it's handled by the Flutter packages
 }
