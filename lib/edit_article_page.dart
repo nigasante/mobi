@@ -41,7 +41,7 @@ class _EditArticlePageState extends State<EditArticlePage> {
       _titleController.text = widget.article!.title;
       _contentController.text = widget.article!.content;
       _status = widget.article!.status;
-      _selectedCategoryIds = widget.article!.categoryID;
+      _selectedCategoryIds = List<int>.from(widget.article!.categoryID ?? []);
       _uploadedImageUrl = widget.article!.imageUrl;
       _previewImageUrl = widget.article!.imageUrl;
     }
@@ -112,11 +112,17 @@ class _EditArticlePageState extends State<EditArticlePage> {
           ? 'http://10.0.2.2:5264/api/articles'
           : 'http://10.0.2.2:5264/api/articles/${widget.article!.articleID}';
 
-      final response = await http.post(
-        Uri.parse(url),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode(requestBody),
-      );
+      final response = widget.article == null
+          ? await http.post(
+              Uri.parse(url),
+              headers: {'Content-Type': 'application/json'},
+              body: json.encode(requestBody),
+            )
+          : await http.put(
+              Uri.parse(url),
+              headers: {'Content-Type': 'application/json'},
+              body: json.encode(requestBody),
+            );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         Navigator.pop(context, true);
@@ -130,7 +136,6 @@ class _EditArticlePageState extends State<EditArticlePage> {
       ).showSnackBar(SnackBar(content: Text('Error saving article: $e')));
     }
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

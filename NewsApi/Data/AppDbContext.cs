@@ -25,25 +25,59 @@ namespace NewsApi.Data
         
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            // Composite keys
-            modelBuilder.Entity<UserRole>().HasKey(ur => new { ur.UserID, ur.RoleID });
-            modelBuilder.Entity<AdminPermission>().HasKey(ap => new { ap.AdminID, ap.PermissionID });
-            modelBuilder.Entity<ArticleCategory>().HasKey(ac => new { ac.ArticleID, ac.CategoryID });
-            modelBuilder.Entity<EditorCategory>().HasKey(ec => new { ec.EditorID, ec.CategoryID });
+{
+    // Composite keys
+    modelBuilder.Entity<UserRole>().HasKey(ur => new { ur.UserID, ur.RoleID });
+    modelBuilder.Entity<AdminPermission>().HasKey(ap => new { ap.AdminID, ap.PermissionID });
+    modelBuilder.Entity<ArticleCategory>().HasKey(ac => new { ac.ArticleID, ac.CategoryID });
+    modelBuilder.Entity<EditorCategory>().HasKey(ec => new { ec.EditorID, ec.CategoryID });
 
-            // Table names (optional, if you want to match exactly)
-            modelBuilder.Entity<Role>().ToTable("Roles");
-            modelBuilder.Entity<User>().ToTable("Users");
-            modelBuilder.Entity<UserRole>().ToTable("UserRoles");
-            modelBuilder.Entity<Permission>().ToTable("Permissions");
-            modelBuilder.Entity<AdminPermission>().ToTable("AdminPermissions");
-            modelBuilder.Entity<Article>().ToTable("Articles");
-            modelBuilder.Entity<ArticleVersion>().ToTable("ArticleVersions");
-            modelBuilder.Entity<Category>().ToTable("Categories");
-            modelBuilder.Entity<ArticleCategory>().ToTable("ArticleCategories");
-            modelBuilder.Entity<EditorCategory>().ToTable("EditorCategories");
-            modelBuilder.Entity<ActivityLog>().ToTable("ActivityLogs");
-        }
+    // Configure ArticleCategory relationships explicitly
+    modelBuilder.Entity<ArticleCategory>()
+        .HasOne(ac => ac.Article)
+        .WithMany(a => a.ArticleCategories)
+        .HasForeignKey(ac => ac.ArticleID)
+        .OnDelete(DeleteBehavior.Cascade);
+
+    modelBuilder.Entity<ArticleCategory>()
+        .HasOne(ac => ac.Category)
+        .WithMany(c => c.ArticleCategories)
+        .HasForeignKey(ac => ac.CategoryID)
+        .OnDelete(DeleteBehavior.Cascade);
+
+    // Configure other relationships
+    modelBuilder.Entity<User>()
+        .HasOne(u => u.Role)
+        .WithMany()
+        .HasForeignKey(u => u.RoleID);
+
+    modelBuilder.Entity<Article>()
+        .HasOne(a => a.Editor)
+        .WithMany(u => u.Articles)
+        .HasForeignKey(a => a.EditorID);
+
+    modelBuilder.Entity<ArticleVersion>()
+        .HasOne(av => av.Article)
+        .WithMany()
+        .HasForeignKey(av => av.ArticleID);
+
+    modelBuilder.Entity<ArticleVersion>()
+        .HasOne(av => av.Editor)
+        .WithMany(u => u.ArticleVersions)
+        .HasForeignKey(av => av.EditorID);
+
+    // Table names (optional, if you want to match exactly)
+    modelBuilder.Entity<Role>().ToTable("Roles");
+    modelBuilder.Entity<User>().ToTable("Users");
+    modelBuilder.Entity<UserRole>().ToTable("UserRoles");
+    modelBuilder.Entity<Permission>().ToTable("Permissions");
+    modelBuilder.Entity<AdminPermission>().ToTable("AdminPermissions");
+    modelBuilder.Entity<Article>().ToTable("Articles");
+    modelBuilder.Entity<ArticleVersion>().ToTable("ArticleVersions");
+    modelBuilder.Entity<Category>().ToTable("Categories");
+    modelBuilder.Entity<ArticleCategory>().ToTable("ArticleCategories");
+    modelBuilder.Entity<EditorCategory>().ToTable("EditorCategories");
+    modelBuilder.Entity<ActivityLog>().ToTable("ActivityLogs");
+}
     }
 }

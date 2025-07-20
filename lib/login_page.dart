@@ -36,8 +36,10 @@ class _LoginPageState extends State<LoginPage> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) =>
-              HomePage(currentUserId: userId, currentUserRoleId: roleId),
+          builder: (context) => HomePage(
+            currentUserId: userId,
+            currentUserRoleId: roleId,
+          ),
         ),
       );
     } else {
@@ -46,7 +48,6 @@ class _LoginPageState extends State<LoginPage> {
       });
     }
   }
-
   void _showSignUpDialog() {
     final nameController = TextEditingController();
     final emailController = TextEditingController();
@@ -136,46 +137,81 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: Center(
-        child: Container(
-          padding: EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            border: Border.all(),
-            borderRadius: BorderRadius.circular(8),
+      body: Stack(
+        children: [
+          // Ảnh nền
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/vintage_newspaper.jpg',
+              fit: BoxFit.cover,
+            ),
           ),
-          width: 300,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: emailController,
-                decoration: InputDecoration(labelText: 'Email'),
-              ),
-              SizedBox(height: 12),
-              TextField(
-                controller: passwordController,
-                obscureText: true,
-                decoration: InputDecoration(labelText: 'Mật khẩu'),
-              ),
-              SizedBox(height: 20),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-                onPressed: login,
-                child: Text("Đăng nhập"),
-              ),
-              TextButton(
-                onPressed: _showSignUpDialog,
-                child: Text("Chưa có tài khoản? Đăng ký"),
-              ),
-              if (error.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 12),
-                  child: Text(error, style: TextStyle(color: Colors.red)),
-                ),
-            ],
+          // Lớp mờ để tăng khả năng đọc chữ
+          Positioned.fill(
+            child: Container(
+              color: Colors.black.withOpacity(0.3),
+            ),
           ),
-        ),
+          // Form đăng nhập
+          Center(
+            child: Container(
+              padding: EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.8),
+                border: Border.all(),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              width: 300,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Đăng Nhập',
+                    style: TextStyle(
+                      fontSize: 24.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  TextField(
+                    controller: emailController,
+                    decoration: InputDecoration(
+                      labelText: 'Email',
+                      prefixIcon: Icon(Icons.email),
+                    ),
+                  ),
+                  SizedBox(height: 12),
+                  TextField(
+                    controller: passwordController,
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      labelText: 'Mật khẩu',
+                      prefixIcon: Icon(Icons.lock),
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      padding: EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+                    ),
+                    onPressed: login,
+                    child: Text("Đăng nhập"),
+                  ),
+                  TextButton(
+                    onPressed: _showSignUpDialog,
+                    child: Text("Chưa có tài khoản? Đăng ký"),
+                  ),
+                  if (error.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 12),
+                      child: Text(error, style: TextStyle(color: Colors.red)),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

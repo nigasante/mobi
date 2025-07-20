@@ -16,7 +16,7 @@ class CloudinaryService {
         CloudinaryFile.fromFile(
           imageFile.path,
           resourceType: CloudinaryResourceType.Image,
-          folder: 'articles', // Optional: organize uploads in folders
+          folder: 'demo', // Optional: organize uploads in folders
         ),
       );
 

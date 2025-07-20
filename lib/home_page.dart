@@ -4,6 +4,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'category.dart'; // Import your model
 
+// ...existing code...
+
 class Article {
   final int articleID;
   final String title;
@@ -15,6 +17,7 @@ class Article {
   final String updatedAt;
   final bool isDeleted;
   final String? imageUrl;
+  final List<int>? categoryID; // Make this a list of integers
 
   Article({
     required this.articleID,
@@ -27,10 +30,10 @@ class Article {
     required this.updatedAt,
     required this.isDeleted,
     this.imageUrl,
+    this.categoryID,
   });
 
   factory Article.fromJson(Map<String, dynamic> json) {
-    // Add debug print
     print(
       'Parsing article JSON: ${json['articleID']} with imageUrl: ${json['imageUrl']}',
     );
@@ -46,11 +49,14 @@ class Article {
       updatedAt: json['updatedAt'] ?? '',
       isDeleted: json['isDeleted'] ?? false,
       imageUrl: json['imageUrl'] as String?,
+      categoryID: json['categoryID'] != null 
+          ? List<int>.from(json['categoryID']) 
+          : null,
     );
   }
-
-  get categoryID => null;
 }
+
+// ...existing code...
 
 class HomePage extends StatefulWidget {
   final int currentUserId;
