@@ -108,17 +108,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ActivityLog"
+                "$ref": "#/components/schemas/ActivityLogDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/ActivityLog"
+                "$ref": "#/components/schemas/ActivityLogDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/ActivityLog"
+                "$ref": "#/components/schemas/ActivityLogDto"
               }
             }
           }
@@ -180,55 +180,6 @@
               "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ActivityLog"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/ActivityLogs/user/{userId}": {
-      "get": {
-        "tags": [
-          "ActivityLogs"
-        ],
-        "parameters": [
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ActivityLog"
-                  }
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ActivityLog"
-                  }
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ActivityLog"
-                  }
                 }
               }
             }
@@ -593,54 +544,25 @@
             }
           }
         }
-      },
-      "put": {
-        "tags": [
-          "AdminPermission"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AdminPermission"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AdminPermission"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/AdminPermission"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      },
+      }
+    },
+    "/api/AdminPermission/{adminId}/{permissionId}": {
       "delete": {
         "tags": [
           "AdminPermission"
         ],
         "parameters": [
           {
-            "name": "id",
+            "name": "adminId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "permissionId",
             "in": "path",
             "required": true,
             "schema": {
@@ -678,25 +600,19 @@
               "text/plain": {
                 "schema": {
                   "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Article"
-                  }
+                  "items": { }
                 }
               },
               "application/json": {
                 "schema": {
                   "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Article"
-                  }
+                  "items": { }
                 }
               },
               "text/json": {
                 "schema": {
                   "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Article"
-                  }
+                  "items": { }
                 }
               }
             }
@@ -751,24 +667,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/Article"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Article"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Article"
-                }
-              }
-            }
+            "description": "OK"
           }
         }
       },
@@ -883,17 +782,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ArticleVersion"
+                "$ref": "#/components/schemas/ArticleVersionDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/ArticleVersion"
+                "$ref": "#/components/schemas/ArticleVersionDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/ArticleVersion"
+                "$ref": "#/components/schemas/ArticleVersionDto"
               }
             }
           }
@@ -915,78 +814,6 @@
               "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ArticleVersion"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/ArticleVersions/{id}/publish": {
-      "post": {
-        "tags": [
-          "ArticleVersions"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/api/ArticleVersions/article/{articleId}": {
-      "get": {
-        "tags": [
-          "ArticleVersions"
-        ],
-        "parameters": [
-          {
-            "name": "articleId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ArticleVersion"
-                  }
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ArticleVersion"
-                  }
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ArticleVersion"
-                  }
                 }
               }
             }
@@ -1801,6 +1628,27 @@
           "timestamp": {
             "type": "string",
             "format": "date-time"
+          },
+          "user": {
+            "$ref": "#/components/schemas/User"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ActivityLogDto": {
+        "type": "object",
+        "properties": {
+          "userID": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "action": {
+            "type": "string",
+            "nullable": true
+          },
+          "tableName": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -1815,6 +1663,12 @@
           "permissionID": {
             "type": "integer",
             "format": "int32"
+          },
+          "admin": {
+            "$ref": "#/components/schemas/User"
+          },
+          "permission": {
+            "$ref": "#/components/schemas/Permission"
           }
         },
         "additionalProperties": false
@@ -1847,6 +1701,10 @@
             "type": "string",
             "nullable": true
           },
+          "imageUrl": {
+            "type": "string",
+            "nullable": true
+          },
           "publishDate": {
             "type": "string",
             "format": "date-time",
@@ -1862,6 +1720,9 @@
           },
           "isDeleted": {
             "type": "boolean"
+          },
+          "editor": {
+            "$ref": "#/components/schemas/User"
           },
           "articleCategories": {
             "type": "array",
@@ -1917,6 +1778,10 @@
             "format": "date-time",
             "nullable": true
           },
+          "imageUrl": {
+            "type": "string",
+            "nullable": true
+          },
           "categoryIDs": {
             "type": "array",
             "items": {
@@ -1955,12 +1820,48 @@
             "type": "integer",
             "format": "int32"
           },
+          "imageUrl": {
+            "type": "string",
+            "nullable": true
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
           },
           "isPublished": {
             "type": "boolean"
+          },
+          "article": {
+            "$ref": "#/components/schemas/Article"
+          },
+          "editor": {
+            "$ref": "#/components/schemas/User"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ArticleVersionDto": {
+        "type": "object",
+        "properties": {
+          "articleID": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "content": {
+            "type": "string",
+            "nullable": true
+          },
+          "editorID": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "imageUrl": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -1997,6 +1898,26 @@
               "$ref": "#/components/schemas/ArticleCategory"
             },
             "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "EditorCategory": {
+        "type": "object",
+        "properties": {
+          "editorID": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "categoryID": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "editor": {
+            "$ref": "#/components/schemas/User"
+          },
+          "category": {
+            "$ref": "#/components/schemas/Category"
           }
         },
         "additionalProperties": false
@@ -2072,6 +1993,30 @@
           },
           "isDeleted": {
             "type": "boolean"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          },
+          "articles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Article"
+            },
+            "nullable": true
+          },
+          "articleVersions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ArticleVersion"
+            },
+            "nullable": true
+          },
+          "editorCategories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EditorCategory"
+            },
+            "nullable": true
           }
         },
         "additionalProperties": false

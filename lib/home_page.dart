@@ -3,6 +3,7 @@ import 'package:flutter_application_3/admin_manager.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'category.dart'; // Import your model
+import 'login_page.dart';
 
 // ...existing code...
 
@@ -49,8 +50,8 @@ class Article {
       updatedAt: json['updatedAt'] ?? '',
       isDeleted: json['isDeleted'] ?? false,
       imageUrl: json['imageUrl'] as String?,
-      categoryID: json['categoryID'] != null 
-          ? List<int>.from(json['categoryID']) 
+      categoryID: json['categoryID'] != null
+          ? List<int>.from(json['categoryID'])
           : null,
     );
   }
@@ -110,8 +111,17 @@ class _HomePageState extends State<HomePage> {
           print('Article ${item['articleID']} imageUrl: ${item['imageUrl']}');
         }
 
+        final parsedArticles = data
+            .map((json) => Article.fromJson(json))
+            .toList();
+        // Debug: print categoryID for each article
+        for (var article in parsedArticles) {
+          print(
+            'Article ${article.articleID} categoryID: ${article.categoryID}',
+          );
+        }
         setState(() {
-          articles = data.map((json) => Article.fromJson(json)).toList();
+          articles = parsedArticles;
           isLoading = false;
         });
       } else {
@@ -139,9 +149,7 @@ class _HomePageState extends State<HomePage> {
   void _onCategorySelected(int? categoryId) {
     setState(() {
       selectedCategoryId = categoryId;
-      isLoading = true;
     });
-    fetchArticles(categoryId: categoryId);
     Navigator.pop(context);
   }
 
@@ -166,25 +174,37 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // Filter articles based on role and status
+    // Debug: print selectedCategoryId when filtering
+    print('Filtering articles with selectedCategoryId: $selectedCategoryId');
     List<Article> visibleArticles = articles.where((article) {
-      if (currentUserRoleId == 1 || currentUserRoleId == 2) {
-        // Admin and Editor see all
-        return true;
-      } else {
-        // Reader sees only Published
-        return article.status == 'Published';
+      // Category filter
+      if (selectedCategoryId != null) {
+        final catId = selectedCategoryId;
+        final catField = article.categoryID;
+        if (catField == null || !catField.contains(catId)) {
+          return false;
+        }
       }
+      // Status filter for reader
+      if (currentUserRoleId == 1 || currentUserRoleId == 2) {
+        return true;
+      }
+      return article.status == 'Published';
     }).toList();
 
     return Scaffold(
-      appBar: AppBar(title: Text(appBarTitle), backgroundColor: Colors.blue),
+      appBar: AppBar(
+        title: Text(appBarTitle),
+        backgroundColor: Color.fromARGB(255, 22, 175, 152),
+      ),
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
             DrawerHeader(
-              decoration: BoxDecoration(color: Colors.blue),
+              decoration: BoxDecoration(
+                color: Color.fromARGB(255, 22, 175, 152),
+              ),
               child: Text(
                 'Danh mục',
                 style: TextStyle(fontSize: 20, color: Colors.white),
@@ -217,6 +237,17 @@ class _HomePageState extends State<HomePage> {
                   );
                 },
               ),
+            Divider(),
+            // Add Login button above Đăng xuất
+            ListTile(
+              leading: Icon(Icons.login, color: Colors.blue),
+              title: Text('Đăng nhập'),
+              onTap: () {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (context) => LoginPage()),
+                );
+              },
+            ),
             ListTile(
               leading: Icon(Icons.logout, color: Colors.red),
               title: Text('Đăng xuất'),
@@ -317,7 +348,7 @@ class ArticleDetailPage extends StatelessWidget {
         .toList();
 
     return Scaffold(
-      appBar: AppBar(title: Text(article.title), backgroundColor: Colors.blue,),
+      appBar: AppBar(title: Text(article.title), backgroundColor: Color.fromARGB(255, 22, 175, 152),),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -336,8 +367,15 @@ class ArticleDetailPage extends StatelessWidget {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.broken_image, size: 48, color: Colors.grey[400]),
-                          Text('Image not available', style: TextStyle(fontSize: 14)),
+                          Icon(
+                            Icons.broken_image,
+                            size: 48,
+                            color: Colors.grey[400],
+                          ),
+                          Text(
+                            'Image not available',
+                            style: TextStyle(fontSize: 14),
+                          ),
                         ],
                       ),
                     );
@@ -349,13 +387,15 @@ class ArticleDetailPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: paragraphs
-                    .map((paragraph) => Padding(
-                          padding: const EdgeInsets.only(bottom: 16.0),
-                          child: Text(
-                            paragraph,
-                            style: TextStyle(fontSize: 16, height: 1.6),
-                          ),
-                        ))
+                    .map(
+                      (paragraph) => Padding(
+                        padding: const EdgeInsets.only(bottom: 16.0),
+                        child: Text(
+                          paragraph,
+                          style: TextStyle(fontSize: 16, height: 1.6),
+                        ),
+                      ),
+                    )
                     .toList(),
               ),
             ),
