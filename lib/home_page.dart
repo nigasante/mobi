@@ -317,7 +317,7 @@ class ArticleDetailPage extends StatelessWidget {
         .toList();
 
     return Scaffold(
-      appBar: AppBar(title: Text(article.title), backgroundColor: Colors.blue),
+      appBar: AppBar(title: Text(article.title), backgroundColor: Colors.blue,),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
