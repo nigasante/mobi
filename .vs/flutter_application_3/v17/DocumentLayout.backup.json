@@ -1,0 +1,121 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\mobi-master - Copy\\mobi-master - Copy\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{116B5392-CB69-B918-2604-AF2EFAA39C59}|NewsApi\\NewsApi.csproj|d:\\mobi-master - copy\\mobi-master - copy\\newsapi\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{116B5392-CB69-B918-2604-AF2EFAA39C59}|NewsApi\\NewsApi.csproj|solutionrelative:newsapi\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{116B5392-CB69-B918-2604-AF2EFAA39C59}|NewsApi\\NewsApi.csproj|d:\\mobi-master - copy\\mobi-master - copy\\newsapi\\controllers\\articlescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{116B5392-CB69-B918-2604-AF2EFAA39C59}|NewsApi\\NewsApi.csproj|solutionrelative:newsapi\\controllers\\articlescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{116B5392-CB69-B918-2604-AF2EFAA39C59}|NewsApi\\NewsApi.csproj|d:\\mobi-master - copy\\mobi-master - copy\\newsapi\\models\\article.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{116B5392-CB69-B918-2604-AF2EFAA39C59}|NewsApi\\NewsApi.csproj|solutionrelative:newsapi\\models\\article.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{116B5392-CB69-B918-2604-AF2EFAA39C59}|NewsApi\\NewsApi.csproj|d:\\mobi-master - copy\\mobi-master - copy\\newsapi\\controllers\\userscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{116B5392-CB69-B918-2604-AF2EFAA39C59}|NewsApi\\NewsApi.csproj|solutionrelative:newsapi\\controllers\\userscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{116B5392-CB69-B918-2604-AF2EFAA39C59}|NewsApi\\NewsApi.csproj|d:\\mobi-master - copy\\mobi-master - copy\\newsapi\\models\\user.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{116B5392-CB69-B918-2604-AF2EFAA39C59}|NewsApi\\NewsApi.csproj|solutionrelative:newsapi\\models\\user.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{116B5392-CB69-B918-2604-AF2EFAA39C59}|NewsApi\\NewsApi.csproj|d:\\mobi-master - copy\\mobi-master - copy\\newsapi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{116B5392-CB69-B918-2604-AF2EFAA39C59}|NewsApi\\NewsApi.csproj|solutionrelative:newsapi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{b1e99781-ab81-11d0-b683-00aa00a3ee26}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "D:\\mobi-master - Copy\\mobi-master - Copy\\NewsApi\\appsettings.json",
+              "RelativeDocumentMoniker": "NewsApi\\appsettings.json",
+              "ToolTip": "D:\\mobi-master - Copy\\mobi-master - Copy\\NewsApi\\appsettings.json",
+              "RelativeToolTip": "NewsApi\\appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAACDAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-07-04T09:28:24.733Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Article.cs",
+              "DocumentMoniker": "D:\\mobi-master - Copy\\mobi-master - Copy\\NewsApi\\Models\\Article.cs",
+              "RelativeDocumentMoniker": "NewsApi\\Models\\Article.cs",
+              "ToolTip": "D:\\mobi-master - Copy\\mobi-master - Copy\\NewsApi\\Models\\Article.cs",
+              "RelativeToolTip": "NewsApi\\Models\\Article.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-26T04:28:11.027Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "ArticlesController.cs",
+              "DocumentMoniker": "D:\\mobi-master - Copy\\mobi-master - Copy\\NewsApi\\Controllers\\ArticlesController.cs",
+              "RelativeDocumentMoniker": "NewsApi\\Controllers\\ArticlesController.cs",
+              "ToolTip": "D:\\mobi-master - Copy\\mobi-master - Copy\\NewsApi\\Controllers\\ArticlesController.cs",
+              "RelativeToolTip": "NewsApi\\Controllers\\ArticlesController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABMAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-26T04:27:49.753Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "User.cs",
+              "DocumentMoniker": "D:\\mobi-master - Copy\\mobi-master - Copy\\NewsApi\\Models\\User.cs",
+              "RelativeDocumentMoniker": "NewsApi\\Models\\User.cs",
+              "ToolTip": "D:\\mobi-master - Copy\\mobi-master - Copy\\NewsApi\\Models\\User.cs",
+              "RelativeToolTip": "NewsApi\\Models\\User.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABgAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-26T03:53:33.236Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "UsersController.cs",
+              "DocumentMoniker": "D:\\mobi-master - Copy\\mobi-master - Copy\\NewsApi\\Controllers\\UsersController.cs",
+              "RelativeDocumentMoniker": "NewsApi\\Controllers\\UsersController.cs",
+              "ToolTip": "D:\\mobi-master - Copy\\mobi-master - Copy\\NewsApi\\Controllers\\UsersController.cs",
+              "RelativeToolTip": "NewsApi\\Controllers\\UsersController.cs",
+              "ViewState": "AgIAAGkAAAAAAAAAAAAUwIEAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-26T03:37:02.407Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\mobi-master - Copy\\mobi-master - Copy\\NewsApi\\Program.cs",
+              "RelativeDocumentMoniker": "NewsApi\\Program.cs",
+              "ToolTip": "D:\\mobi-master - Copy\\mobi-master - Copy\\NewsApi\\Program.cs",
+              "RelativeToolTip": "NewsApi\\Program.cs",
+              "ViewState": "AgIAAAwAAAAAAAAAAAAUwBoAAAAoAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-26T03:29:19.674Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
