@@ -19,6 +19,7 @@ class _AdminArticleManagerState extends State<AdminArticleManager> {
   List<Article> articles = [];
   List<Category> categories = [];
   bool isLoading = true;
+  String searchQuery = '';
 
   @override
   void initState() {
@@ -95,6 +96,22 @@ class _AdminArticleManagerState extends State<AdminArticleManager> {
     }
   }
 
+  void _onSearchSubmitted(String query) {
+    setState(() {
+      searchQuery = query.toLowerCase();
+    });
+  }
+
+  List<Article> get filteredArticles {
+    if (searchQuery.isEmpty) {
+      return articles;
+    }
+    return articles.where((article) {
+      return article.title.toLowerCase().contains(searchQuery) ||
+          (article.content != null && article.content!.toLowerCase().contains(searchQuery));
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -133,91 +150,124 @@ class _AdminArticleManagerState extends State<AdminArticleManager> {
             ),
           ],
         ),
-        body: isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : ListView.builder(
-                itemCount: articles.length,
-                itemBuilder: (context, index) {
-                  final article = articles[index];
-                  // Debug image URL for each article
-                  print(
-                    'Building article ${article.articleID} with imageUrl: ${article.imageUrl}',
-                  );
+        body: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextField(
+                textAlign: TextAlign.center,
+                decoration: InputDecoration(
+                  hintText: 'Search articles...',
+                  filled: true,
+                  fillColor: Theme.of(context).inputDecorationTheme.fillColor,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 8.0,
+                    horizontal: 12.0,
+                  ),
+                ),
+                onSubmitted: _onSearchSubmitted,
+                onChanged: (value) {
+                  if (value.isEmpty) {
+                    setState(() {
+                      searchQuery = '';
+                    });
+                  }
+                },
+              ),
+            ),
+            Expanded(
+              child: isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : ListView.builder(
+                      itemCount: filteredArticles.length,
+                      itemBuilder: (context, index) {
+                        final article = filteredArticles[index];
+                        // Debug image URL for each article
+                        print(
+                          'Building article ${article.articleID} with imageUrl: ${article.imageUrl}',
+                        );
 
-                  return Card(
-                    margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        children: [
-                          // Image section - make it larger
-                          SizedBox(
-                            width: 100,
-                            height: 100,
-                            child: _buildArticleImage(article),
-                          ),
-                          const SizedBox(width: 12),
-                          // Content section
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                        return Card(
+                          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
                               children: [
-                                Text(
-                                  article.title,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
+                                // Image section - make it larger
+                                SizedBox(
+                                  width: 100,
+                                  height: 100,
+                                  child: _buildArticleImage(article),
+                                ),
+                                const SizedBox(width: 12),
+                                // Content section
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        article.title,
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text('Status: ${article.status}'),
+                                      if (article.imageUrl != null &&
+                                          article.imageUrl!.isNotEmpty)
+                                        Text(
+                                          'URL: ${article.imageUrl!.length > 30 ? "${article.imageUrl!.substring(0, 30)}..." : article.imageUrl}',
+                                          style: const TextStyle(
+                                            fontSize: 10,
+                                            color: Colors.blue,
+                                          ),
+                                        ),
+                                    ],
                                   ),
                                 ),
-                                const SizedBox(height: 4),
-                                Text('Status: ${article.status}'),
-                                if (article.imageUrl != null &&
-                                    article.imageUrl!.isNotEmpty)
-                                  Text(
-                                    'URL: ${article.imageUrl!.length > 30 ? "${article.imageUrl!.substring(0, 30)}..." : article.imageUrl}',
-                                    style: const TextStyle(
-                                      fontSize: 10,
-                                      color: Colors.blue,
+                                // Actions section
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.edit, color: Colors.blue),
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => EditArticlePage(
+                                              article: article,
+                                              editorId: widget.adminUserId,
+                                              categories: categories,
+                                            ),
+                                          ),
+                                        ).then((updated) {
+                                          if (updated == true) {
+                                            fetchArticles();
+                                          }
+                                        });
+                                      },
                                     ),
-                                  ),
+                                    IconButton(
+                                      icon: const Icon(Icons.delete, color: Colors.red),
+                                      onPressed: () => deleteArticle(article.articleID),
+                                    ),
+                                  ],
+                                ),
                               ],
                             ),
                           ),
-                          // Actions section
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.edit, color: Colors.blue),
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => EditArticlePage(
-                                        article: article,
-                                        editorId: widget.adminUserId,
-                                        categories: categories,
-                                      ),
-                                    ),
-                                  ).then((updated) {
-                                    if (updated == true) {
-                                      fetchArticles();
-                                    }
-                                  });
-                                },
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete, color: Colors.red),
-                                onPressed: () => deleteArticle(article.articleID),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
+            ),
+          ],
+        ),
       ),
     );
   }
