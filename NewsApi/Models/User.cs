@@ -20,7 +20,6 @@ namespace NewsApi.Models
         [ForeignKey("RoleID")]
         public Role? Role { get; set; }
         public ICollection<Article> Articles { get; set; } = new List<Article>();
-        public ICollection<ArticleVersion> ArticleVersions { get; set; } = new List<ArticleVersion>();
         public ICollection<EditorCategory> EditorCategories { get; set; } = new List<EditorCategory>();
     }
 }

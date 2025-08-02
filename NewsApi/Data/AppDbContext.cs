@@ -16,11 +16,9 @@ namespace NewsApi.Data
         public DbSet<Permission> Permissions { get; set; }
         public DbSet<AdminPermission> AdminPermissions { get; set; }
         public DbSet<Article> Articles { get; set; }
-        public DbSet<ArticleVersion> ArticleVersions { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<ArticleCategory> ArticleCategories { get; set; }
         public DbSet<EditorCategory> EditorCategories { get; set; }
-        public DbSet<ActivityLog> ActivityLogs { get; set; }
         public DbSet<FavoriteArticle> FavoriteArticles { get; set; }
 
         
@@ -73,16 +71,6 @@ namespace NewsApi.Data
         .WithMany(u => u.Articles)
         .HasForeignKey(a => a.EditorID);
 
-    modelBuilder.Entity<ArticleVersion>()
-        .HasOne(av => av.Article)
-        .WithMany()
-        .HasForeignKey(av => av.ArticleID);
-
-    modelBuilder.Entity<ArticleVersion>()
-        .HasOne(av => av.Editor)
-        .WithMany(u => u.ArticleVersions)
-        .HasForeignKey(av => av.EditorID);
-
     // Table names (optional, if you want to match exactly)
     modelBuilder.Entity<Role>().ToTable("Roles");
     modelBuilder.Entity<User>().ToTable("Users");
@@ -90,11 +78,9 @@ namespace NewsApi.Data
     modelBuilder.Entity<Permission>().ToTable("Permissions");
     modelBuilder.Entity<AdminPermission>().ToTable("AdminPermissions");
     modelBuilder.Entity<Article>().ToTable("Articles");
-    modelBuilder.Entity<ArticleVersion>().ToTable("ArticleVersions");
     modelBuilder.Entity<Category>().ToTable("Categories");
     modelBuilder.Entity<ArticleCategory>().ToTable("ArticleCategories");
     modelBuilder.Entity<EditorCategory>().ToTable("EditorCategories");
-    modelBuilder.Entity<ActivityLog>().ToTable("ActivityLogs");
 }
     }
 }
