@@ -49,6 +49,14 @@ class ThemeProvider with ChangeNotifier {
       elevation: 4,
       shadowColor: Colors.grey.withOpacity(0.2),
     ),
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: Colors.grey[200], // Màu nền nhạt cho thanh tìm kiếm ở chế độ sáng
+      border: InputBorder.none,
+      hintStyle: TextStyle(color: Colors.black54),
+      prefixIconColor: Colors.black54,
+      suffixIconColor: Colors.black54,
+    ),
   );
 
   static final _darkTheme = ThemeData(
@@ -69,6 +77,14 @@ class ThemeProvider with ChangeNotifier {
       color: const Color(0xFF1E1E1E),
       elevation: 4,
       shadowColor: Colors.black.withOpacity(0.4),
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: const Color(0xFF2C2C2C), // Màu nền đậm hơn nhưng dễ đọc ở chế độ tối
+      border: InputBorder.none,
+      hintStyle: TextStyle(color: Colors.white60),
+      prefixIconColor: Colors.white60,
+      suffixIconColor: Colors.white60,
     ),
   );
 }

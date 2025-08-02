@@ -291,8 +291,31 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(appBarTitle),
-        backgroundColor: Theme.of(context).primaryColor,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text("News"),
+            const SizedBox(width: 8),
+            Expanded(
+              child: TextField(
+                textAlign: TextAlign.center,
+                decoration: InputDecoration(
+                  hintText: 'Search articles...',
+                  border: InputBorder.none,
+                ),
+                onSubmitted: _onSearchSubmitted,
+                onChanged: (value) {
+                  if (value.isEmpty) {
+                    setState(() {
+                      searchQuery = '';
+                    });
+                  }
+                },
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         actions: [
           if (widget.currentUserId != 0)
             IconButton(
@@ -315,37 +338,6 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
         ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(56.0),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Search articles...',
-                border: InputBorder.none,
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          setState(() {
-                            searchQuery = '';
-                          });
-                        },
-                      )
-                    : null,
-              ),
-              onSubmitted: _onSearchSubmitted,
-              onChanged: (value) {
-                if (value.isEmpty) {
-                  setState(() {
-                    searchQuery = '';
-                  });
-                }
-              },
-            ),
-          ),
-        ),
       ),
       drawer: Drawer(
         child: ListView(
