@@ -280,8 +280,7 @@ class _HomePageState extends State<HomePage> {
             (article.categoryID?.contains(selectedCategoryId) ?? false);
         final matchesRole = widget.currentUserRoleId == 1 || widget.currentUserRoleId == 2 ||
             article.status == 'Published';
-        final matchesSearch = article.title.toLowerCase().contains(searchQuery.toLowerCase()) ||
-            article.content.toLowerCase().contains(searchQuery.toLowerCase());
+        final matchesSearch = article.title.toLowerCase().contains(searchQuery.toLowerCase());
         return matchesCategory && matchesRole && matchesSearch;
       }).toList();
     }

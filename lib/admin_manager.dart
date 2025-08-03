@@ -107,8 +107,7 @@ class _AdminArticleManagerState extends State<AdminArticleManager> {
       return articles;
     }
     return articles.where((article) {
-      return article.title.toLowerCase().contains(searchQuery) ||
-          (article.content != null && article.content!.toLowerCase().contains(searchQuery));
+      return article.title.toLowerCase().contains(searchQuery);
     }).toList();
   }
 
